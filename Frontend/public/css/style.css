@@ -1,0 +1,46 @@
+/* === Base CSS === */
+
+html {
+
+    --shop-color-bg: #fff8f8;
+    --shop-color-main: #E23D8F;
+    --shop-color-accent: #fcd5e7;
+    --shop-color-text: #333333;
+    --shop-color-title: #1e1e1e;
+    --shop-color-muted: #999;
+    --shop-color-hover: #c82b76;
+    --shop-color-border: #f1d5da;
+    --time-transition: 0.4s;
+    --height-header: 80px;
+    --padding-section: 80px;
+    /* === Font size === */
+    --fz-h1: 62px;
+    --fz-h2: 40px;
+    --fz-h3: 25px;
+    /* === Container === */
+    --max-width: 1140px;
+    --pd-contact: calc((100vw - var(--max-width) - 15px) / 2);
+    scroll-behavior: smooth;
+}
+
+body {
+    width: 100%;
+    margin: 0 auto;
+    font-family: "mr";
+    font-size: 13px;
+    line-height: 30px;
+    letter-spacing: -0.4px;
+    scroll-behavior: smooth;
+}
+
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding-left: 15px;
+    padding-right: 15px;
+    position: relative;
+}
+
+img {
+    max-width: 100%;
+}
