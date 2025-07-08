@@ -8,8 +8,7 @@ import "swiper/css/navigation";
 
 // Danh sách các brand
 const brands = [
-    { name: "Grin7", image: "grin7.jpg" },
-    { name: "Morinaga", image: "morinaga.jpg" },
+    { name: "ChuChuBaby", image: "chuchubaby.jpg" },
     { name: "Manna", image: "manna.jpg" },
     { name: "Shinshu", image: "shinshu.jpg" },
     { name: "Torayvino", image: "torayvino.jpg" },
@@ -42,8 +41,6 @@ const BrandSlider = () => {
                     </div>
                 </div>
 
-
-
                 {/* Swiper */}
                 <div className="pl-44">
                     <Swiper
@@ -64,11 +61,11 @@ const BrandSlider = () => {
                         {brands.map((brand, index) => (
                             <SwiperSlide key={index} className="py-2 overflow-visible">
                                 <div className="flex flex-col items-center group cursor-pointer">
-                                    <div className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full p-2 shadow-md border-2 border-transparent group-hover:border-pink-500 group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                                    <div className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full p-3 shadow-md border-2 border-transparent group-hover:border-pink-500 group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300 ease-in-out">
                                         <img
                                             src={`/images/brand/${brand.image}`}
                                             alt={brand.name}
-                                            className="w-full h-full object-cover rounded-full"
+                                            className="w-full h-full object-contain rounded-full"
                                         />
                                     </div>
                                     <p className="mt-2 text-sm md:text-base text-gray-800 text-center group-hover:text-pink-600 transition duration-300">
@@ -78,8 +75,6 @@ const BrandSlider = () => {
                             </SwiperSlide>
                         ))}
                     </Swiper>
-
-
                 </div>
             </div>
         </div>
