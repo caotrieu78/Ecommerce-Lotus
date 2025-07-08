@@ -1,172 +1,194 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductService from "../../services/ProductService";
 import ProductCard from "../../components/ProductCard";
-import ProductFilter from "../../components/ProductFilter";
 import QuickViewModal from "../../components/QuickViewModal";
+
+const CATEGORIES = [
+    "Thực phẩm chế biến",
+    "Thực phẩm tươi",
+    "Thực phẩm ăn liền"
+];
+
+const DEFAULT_CATEGORY = "Thực phẩm chế biến";
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const productsPerPage = 4; // Number of products to display on the homepage
+    const [activeTab, setActiveTab] = useState(DEFAULT_CATEGORY);
+
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await ProductService.getAll();
-                console.log("Product data from API:", data); // Debug product data from API
-                const enriched = data.map((product) => {
-                    // Ensure SelectedVariant.Price always has a value
-                    if (product.Variants?.length > 0) {
-                        const sorted = [...product.Variants].sort(
-                            (a, b) => a.Price - b.Price
-                        );
-                        return { ...product, SelectedVariant: sorted[0] };
-                    }
-                    return { ...product, SelectedVariant: { Price: product.Price || 0 } }; // Fallback price
-                });
-                setProducts(enriched);
-                setFilteredProducts(enriched.slice(0, productsPerPage));
-            } catch (err) {
-                setError("Unable to load products. Please try again later.");
-                console.error("Error loading products:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    // Utility function to enrich product data
+    const enrichProductData = useCallback((products) => {
+        return products.map(product => {
+            const variant = product.Variants?.length
+                ? [...product.Variants].sort((a, b) => a.Price - b.Price)[0]
+                : { Price: product.Price || 0 };
 
-        fetchData();
-        window.scrollTo(0, 0);
+            return {
+                ...product,
+                SelectedVariant: variant,
+            };
+        });
     }, []);
 
-    const handleFilterChange = (filter) => {
-        let filtered = [...products];
+    // Fetch products with error handling
+    const fetchProducts = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
 
-        console.log("Received filters:", filter); // Debug all filters
+        try {
+            const response = await ProductService.getAll();
+            const rawProducts = Array.isArray(response) ? response : response?.data || [];
+            const enrichedProducts = enrichProductData(rawProducts);
 
-        // Filter by search query
-        if (filter.search) {
-            filtered = filtered.filter((p) =>
-                p.ProductName?.toLowerCase().includes(filter.search.toLowerCase())
-            );
+            setProducts(enrichedProducts);
+        } catch (err) {
+            console.error("Error loading products:", err);
+            setError("Không thể tải sản phẩm. Vui lòng thử lại sau.");
+        } finally {
+            setIsLoading(false);
         }
+    }, [enrichProductData]);
 
-        // Filter by tag
-        if (filter.tag === "Best Seller") {
-            filtered = filtered.filter((p) => p.isBestSeller === true);
-        } else if (filter.tag === "New Arrival") {
-            filtered = filtered.filter(
-                (p) =>
-                    p.createdAt &&
-                    new Date(p.createdAt) >=
-                    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            );
-        }
+    // Initialize component
+    useEffect(() => {
+        fetchProducts();
+        window.scrollTo(0, 0);
+    }, [fetchProducts]);
 
-        // Filter by gender
-        if (filter.gender) {
-            filtered = filtered.filter((p) => p.Gender === filter.gender);
-        }
-
-        // Filter by category
-        if (filter.category) {
-            filtered = filtered.filter(
-                (p) => p.category?.CategoryName === filter.category
-            );
-        }
-
-        // Filter by price range
-        if (filter.minPrice || filter.maxPrice) {
-            filtered = filtered.filter((p) => {
-                const price = parseFloat(p.SelectedVariant?.Price) || 0; // Convert to number
-                const minPrice = parseInt(filter.minPrice) || 0;
-                const maxPrice = parseInt(filter.maxPrice) || Infinity;
-                console.log(
-                    `Checking price: ${price}, Min: ${minPrice}, Max: ${maxPrice}`
-                ); // Debug
-                return price >= minPrice && price <= maxPrice;
-            });
-        }
-
-        // Sort products
-        if (filter.sortBy) {
-            console.log("Sorting by:", filter.sortBy); // Debug
-            filtered.sort((a, b) => {
-                const priceA = parseFloat(a.SelectedVariant?.Price) || 0;
-                const priceB = parseFloat(b.SelectedVariant?.Price) || 0;
-                if (filter.sortBy === "price-asc") {
-                    console.log(`Comparing prices: ${priceA} vs ${priceB}`); // Debug
-                    return priceA - priceB;
-                } else if (filter.sortBy === "price-desc") {
-                    return priceB - priceA;
-                } else if (filter.sortBy === "newest") {
-                    return new Date(b.createdAt) - new Date(a.createdAt);
-                }
-                return 0;
-            });
-        }
-
-        // Temporarily remove limit for testing
-        setFilteredProducts(filtered);
-        console.log("Filtered products:", filtered); // Debug result
-        // If you want to keep the limit of 4 products, use:
-        // setFilteredProducts(filtered.slice(0, productsPerPage));
-    };
-
-    const handleQuickView = (product) => {
+    // Event handlers
+    const handleQuickView = useCallback((product) => {
         setSelectedProduct(product);
-    };
+    }, []);
 
-    const handleViewMore = () => {
+    const handleCloseModal = useCallback(() => {
+        setSelectedProduct(null);
+    }, []);
+
+    const handleViewMore = useCallback(() => {
         navigate("/shop");
-    };
+    }, [navigate]);
 
+    const handleTabChange = useCallback((category) => {
+        setActiveTab(category);
+    }, []);
+
+    // Render loading state
     if (isLoading) {
-        return <div className="text-center py-5">Loading...</div>;
+        return (
+            <div className="bg-[#fdfcfb] py-10 px-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center text-gray-500 py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+                        Đang tải sản phẩm...
+                    </div>
+                </div>
+            </div>
+        );
     }
 
+    // Render error state
     if (error) {
-        return <div className="text-center py-5 text-danger">{error}</div>;
+        return (
+            <div className="bg-[#fdfcfb] py-10 px-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center text-red-500 py-20">
+                        <div className="text-4xl mb-4">⚠️</div>
+                        <p className="text-lg mb-4">{error}</p>
+                        <button
+                            onClick={fetchProducts}
+                            className="bg-pink-600 text-white px-6 py-2 rounded-full hover:bg-pink-700 transition-colors"
+                        >
+                            Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="container py-5">
-            <h3 className="mb-4">Featured Products</h3> {/* Changed to English */}
-            <ProductFilter onFilterChange={handleFilterChange} />
-            <div className="row">
-                {filteredProducts.length === 0 ? (
-                    <div className="text-center py-5">No products found.</div>
-                ) : (
-                    filteredProducts.map((product) => (
-                        <ProductCard
-                            key={product.ProductID}
-                            product={product}
-                            onQuickView={handleQuickView}
+        <div className=" py-10 px-4">
+            <div className="max-w-7xl mx-auto">
+                {/* Header Section */}
+                <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                        Thực phẩm
+                    </h2>
+
+                    {/* Category Tabs */}
+                    <nav className="flex gap-2 flex-wrap">
+                        {CATEGORIES.map((category) => (
+                            <button
+                                key={category}
+                                onClick={() => handleTabChange(category)}
+                                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === category
+                                    ? "bg-pink-600 text-white shadow-md"
+                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100"
+                                    }`}
+                                aria-pressed={activeTab === category}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </nav>
+                </header>
+
+                {/* Main Content */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    {/* Sidebar Banner */}
+                    <aside className="hidden md:block">
+                        <img
+                            src="/images/home_coll_1_banner1.jpg"
+                            alt="Khuyến mãi thực phẩm"
+                            className="w-full rounded-lg shadow-md object-cover"
+                            loading="lazy"
                         />
-                    ))
+                    </aside>
+
+                    {/* Products Grid */}
+                    <main className="md:col-span-4">
+                        {products.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-[15px]">
+                                {products.map((product) => (
+                                    <ProductCard
+                                        key={product.ProductID}
+                                        product={product}
+                                        onQuickView={handleQuickView}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center text-gray-400 py-20">
+                                <div className="text-4xl mb-4">📦</div>
+                                <p className="text-lg">Không tìm thấy sản phẩm nào.</p>
+                            </div>
+                        )}
+                    </main>
+                </div>
+
+                {/* View More Button */}
+                <footer className="text-center mt-10">
+                    <button
+                        onClick={handleViewMore}
+                        className="text-pink-600 border border-pink-500 hover:bg-pink-50 px-6 py-2 rounded-full text-sm font-semibold transition-colors duration-200"
+                    >
+                        Xem tất cả <span className="font-bold">{activeTab}</span>
+                    </button>
+                </footer>
+
+                {/* Quick View Modal */}
+                {selectedProduct && (
+                    <QuickViewModal
+                        product={selectedProduct}
+                        onClose={handleCloseModal}
+                    />
                 )}
             </div>
-            <div className="text-center mt-5">
-                <button
-                    className="view-more-btn"
-                    onClick={handleViewMore}
-                    aria-label="View more products"
-                >
-                    View More
-                </button>
-            </div>
-            {selectedProduct && (
-                <QuickViewModal
-                    product={selectedProduct}
-                    onClose={() => setSelectedProduct(null)}
-                />
-            )}
         </div>
     );
 };

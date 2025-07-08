@@ -1,221 +1,79 @@
-/* === Lotus Logo Styles === */
-.lotus-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--shop-color-main), var(--shop-color-hover));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+body {
+    background-color: #f5f3ea !important;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
 }
 
-.lotus-icon::before {
-    content: '';
-    width: 20px;
-    height: 20px;
-    background: white;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate
+html {
+    scroll-behavior: smooth;
+}
 
-    /* === Base CSS === */
-    html {
-        --shop-color-bg: #fff8f8;
-        --shop-color-main: #E23D8F;
-        --shop-color-accent: #fcd5e7;
-        --shop-color-text: #333333;
-        --shop-color-title: #1e1e1e;
-        --shop-color-muted: #999;
-        --shop-color-hover: #c82b76;
-        --shop-color-border: #f1d5da;
-        --time-transition: 0.4s;
-        --height-header: 80px;
-        --padding-section: 80px;
-        /* === Font size === */
-        --fz-h1: 62px;
-        --fz-h2: 40px;
-        --fz-h3: 25px;
-        /* === Container === */
-        --max-width: 1140px;
-        --pd-contact: calc((100vw - var(--max-width) - 15px) / 2);
-        scroll-behavior: smooth;
-    }
+body {}
 
-    body {
-        width: 100%;
-        margin: 0 auto;
-        font-family: "mr";
-        font-size: 13px;
-        line-height: 30px;
-        letter-spacing: -0.4px;
-        scroll-behavior: smooth;
-    }
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    margin-top: 12px;
+    width: 240px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    z-index: 1000;
+    font-family: system-ui, sans-serif;
+}
 
-    .container {
-        max-width: var(--max-width);
-        margin: 0 auto;
-        padding-left: 15px;
-        padding-right: 15px;
-        position: relative;
-    }
+/* Header with name and role */
+.user-dropdown-header {
+    padding: 12px 16px 2px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
 
-    img {
-        max-width: 100%;
-    }
+.user-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
 
-    /* === Flying Animation === */
-    .fly-to-cart {
-        position: fixed;
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 8px;
-        z-index: 9999;
-        pointer-events: none;
-        animation: flyToCart 1s ease-out forwards;
-    }
+/* List container */
+.user-dropdown-list {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+}
 
-    @keyframes flyToCart {
-        0% {
-            transform: translate(0, 0) scale(1);
-            opacity: 1;
-        }
+/* List item styling */
+.user-dropdown-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #111827;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
 
-        50% {
-            transform: translate(calc(var(--endX) * 0.5), calc(var(--endY) * 0.5)) scale(0.8);
-            opacity: 0.8;
-        }
+.user-dropdown-list li:hover {
+    background-color: #fdf2f8;
+}
 
-        100% {
-            transform: translate(var(--endX), var(--endY)) scale(0.3);
-            opacity: 0;
-        }
-    }
+/* Special styling for logout */
+.user-dropdown-list .logout {
+    color: #dc2626;
+}
 
-    /* === Header Custom Styles === */
-    .header-gradient {
-        background: linear-gradient(180deg, var(--shop-color-bg), var(--shop-color-accent));
-    }
+.user-dropdown-list .logout:hover {
+    background-color: #fef2f2;
+}
 
-    /* === Active Link Styles === */
-    .nav-link-active {
-        color: var(--shop-color-main) !important;
-        font-weight: 600;
-    }
-
-    .nav-link-active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--shop-color-main);
-        border-radius: 1px;
-    }
-
-    /* === Mobile Menu Animation === */
-    .mobile-menu-enter {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    .mobile-menu-enter-active {
-        opacity: 1;
-        transform: translateY(0);
-        transition: all var(--time-transition) ease-out;
-    }
-
-    .mobile-menu-exit {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .mobile-menu-exit-active {
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all var(--time-transition) ease-out;
-    }
-
-    /* === Search Modal Animation === */
-    .search-modal {
-        animation: modalFadeIn 0.3s ease-out;
-    }
-
-    @keyframes modalFadeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    /* === Custom Scrollbar === */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--shop-color-bg);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--shop-color-accent);
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--shop-color-main);
-    }
-
-    /* === Responsive Design === */
-    @media (max-width: 768px) {
-        .container {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .header-gradient {
-            padding: 10px 0;
-        }
-    }
-
-    /* === Focus States === */
-    button:focus,
-    input:focus,
-    a:focus {
-        outline: 2px solid var(--shop-color-main);
-        outline-offset: 2px;
-    }
-
-    /* === Hover Effects === */
-    .hover-scale {
-        transition: transform var(--time-transition) ease;
-    }
-
-    .hover-scale:hover {
-        transform: scale(1.05);
-    }
-
-    /* === Badge Animation === */
-    .cart-badge {
-        animation: badgePulse 0.5s ease-out;
-    }
-
-    @keyframes badgePulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.2);
-        }
-
-        100% {
-            transform: scale(1);
-        }
-    }
+/* Icon next to text */
+.user-dropdown-list .icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.6;
+    flex-shrink: 0;
+}

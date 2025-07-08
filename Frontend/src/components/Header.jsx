@@ -11,6 +11,7 @@ import {
     CheckCircle,
     Menu,
     X,
+    LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -98,72 +99,64 @@ const Header = () => {
 
                     {/* Right side icons */}
                     <div className="flex items-center gap-4">
-
-
                         {/* User Dropdown */}
                         <div className="relative" ref={userMenuRef}>
-                            {user ? (
-                                <div
-                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition"
-                                    title={user?.FullName || user?.Username || "Tài khoản"}
-                                >
-                                    <div className="w-8 h-8 flex items-center justify-center bg-pink-500 text-white font-bold rounded-full">
-                                        {(user.FullName || user.Username).charAt(0).toUpperCase()}
-                                    </div>
+                            <div
+                                onClick={() =>
+                                    user ? setIsUserMenuOpen(!isUserMenuOpen) : navigate("/login")
+                                }
+                                className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition"
+                                title={user ? (user.FullName || user.Username) : "Đăng nhập"}
+                            >
+                                <div className="w-8 h-8 flex items-center justify-center bg-pink-500 text-white font-bold rounded-full">
+                                    {user ? (
+                                        (user.FullName || user.Username).charAt(0).toUpperCase()
+                                    ) : (
+                                        <UserCircle className="w-5 h-5" />
+                                    )}
+                                </div>
+                                {/* Show text only on desktop */}
+                                {!user && (
+                                    <span className="text-sm text-gray-800 font-medium hidden sm:inline">
+                                        Đăng nhập / Đăng ký
+                                    </span>
+                                )}
+                                {user && (
                                     <span className="text-sm text-gray-800 font-medium hidden sm:inline">
                                         {user.FullName || user.Username}
                                     </span>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => navigate("/login")}
-                                    className="text-gray-800 hover:text-pink-600 transition"
-                                    title="Đăng nhập / Đăng ký"
-                                >
-                                    <UserCircle className="w-6 h-6" />
-                                </button>
-                            )}
+                                )}
+                            </div>
+
 
                             {user && isUserMenuOpen && (
-                                <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-xl border z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b bg-white">
-                                        <p className="text-sm font-semibold text-gray-900">
-                                            {user.FullName || user.Username}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            Premium Member
-                                        </p>
+                                <div className="user-dropdown">
+                                    <div className="user-dropdown-header">
+                                        <p className="user-name">{user.FullName || user.Username}</p>
                                     </div>
-                                    <ul className="text-sm text-gray-800">
-                                        <li
-                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => goTo("/account")}
-                                        >
-                                            Thông tin tài khoản
+                                    <ul className="user-dropdown-list">
+                                        <li onClick={() => goTo("/account")}>
+                                            <UserCircle className="icon" />
+                                            <span>Thông tin tài khoản</span>
                                         </li>
-                                        <li
-                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => goTo("/orders")}
-                                        >
-                                            Đơn hàng của tôi
+                                        <li onClick={() => goTo("/orders")}>
+                                            <Truck className="icon" />
+                                            <span>Đơn hàng của tôi</span>
                                         </li>
-                                        <li
-                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => goTo("/favorites")}
-                                        >
-                                            Sản phẩm yêu thích
+                                        <li onClick={() => goTo("/favorites")}>
+                                            <Heart className="icon" />
+                                            <span>Sản phẩm yêu thích</span>
                                         </li>
-                                        <li
-                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-red-600"
-                                            onClick={handleLogout}
-                                        >
-                                            Đăng xuất
+                                        <li className="logout" onClick={handleLogout}>
+                                            <LogOut className="icon" />
+                                            <span>Đăng xuất</span>
                                         </li>
                                     </ul>
                                 </div>
                             )}
+
                         </div>
+
                         {/* Yêu thích - desktop */}
                         <button
                             onClick={() => navigate("/favorites")}
@@ -172,6 +165,7 @@ const Header = () => {
                             <Heart className="w-5 h-5" />
                             <span className="text-sm font-medium hidden md:inline">Yêu thích</span>
                         </button>
+
                         {/* Cart Icon */}
                         <div
                             onClick={() => navigate("/shopping-cart")}
@@ -213,7 +207,6 @@ const Header = () => {
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
                         <div className="px-4 py-4 space-y-4">
-                            {/* Wishlist link */}
                             <div className="space-y-2">
                                 <button
                                     onClick={() => {
@@ -234,7 +227,6 @@ const Header = () => {
             {/* Bottom Header */}
             <div className="bg-pink-600 px-4 py-2">
                 <div className="max-w-7xl mx-auto flex items-center justify-between text-white text-sm font-medium">
-                    {/* Danh mục */}
                     <div className="relative" ref={menuRef}>
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -244,7 +236,6 @@ const Header = () => {
                             <span className="hidden sm:inline">DANH MỤC SẢN PHẨM</span>
                             <span className="sm:hidden">DANH MỤC</span>
                         </button>
-
                         {isMenuOpen && (
                             <div className="absolute top-full left-0 mt-2 w-64 bg-white shadow-lg rounded-md z-50">
                                 <ul className="divide-y divide-gray-100 text-gray-800">
@@ -261,8 +252,6 @@ const Header = () => {
                             </div>
                         )}
                     </div>
-
-                    {/* Cam kết */}
                     <div className="hidden lg:flex gap-6">
                         <div className="flex items-center gap-2">
                             <BadgeCheck className="w-4 h-4 text-white" />
@@ -277,8 +266,6 @@ const Header = () => {
                             <span>Mở hộp kiểm tra nhận hàng</span>
                         </div>
                     </div>
-
-                    {/* Live */}
                     <button className="flex items-center gap-2 border border-white px-2 lg:px-3 py-1 rounded-md hover:bg-white hover:text-pink-700 transition">
                         <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
                         <span className="text-xs lg:text-sm font-medium">
@@ -290,6 +277,5 @@ const Header = () => {
             </div>
         </header>
     );
-};
-
+}
 export default Header;

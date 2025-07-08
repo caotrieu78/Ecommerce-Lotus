@@ -1,215 +1,199 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
+import React, { useState } from "react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
+  Youtube
+} from "lucide-react";
 
 const Footer = () => {
-    return (
-        <>
-            <style>
-                {`
-          @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+  const [email, setEmail] = useState("");
 
-          .footer {
-            background: #000000;
-            color: #f8f9fa;
-            padding: 4rem 0 2rem;
-            margin-top: 4rem;
-            animation: fadeIn 0.5s ease-in-out;
-          }
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    console.log("Subscribing email:", email);
+    setEmail("");
+  };
 
-          .footer-heading {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #ffffff;
-            position: relative;
-            padding-bottom: 0.5rem;
-          }
+  return (
+    <footer className="bg-gray-50 py-16">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Newsletter Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-center mb-16 pb-8 border-b border-gray-200">
+          <div className="mb-6 lg:mb-0">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Đăng ký nhận tin
+            </h3>
+          </div>
 
-          .footer-heading::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50px;
-            height: 2px;
-            background: linear-gradient(90deg, #1a73e8, #4dabf7);
-          }
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Nhập email của bạn"
+                className="px-4 py-3 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                required
+              />
+              <button
+                onClick={handleSubscribe}
+                className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-300"
+              >
+                ĐĂNG KÝ
+              </button>
+            </div>
 
-          .footer-text {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #d1d5db;
-            max-width: 300px;
-          }
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600 font-medium">Kết nối với chúng tôi</span>
+              <div className="flex gap-3">
+                <button className="w-10 h-10 bg-gray-200 hover:bg-pink-500 rounded-full flex items-center justify-center text-gray-600 hover:text-white transition-all duration-300">
+                  <Facebook size={16} />
+                </button>
+                <button className="w-10 h-10 bg-gray-200 hover:bg-pink-500 rounded-full flex items-center justify-center text-gray-600 hover:text-white transition-all duration-300">
+                  <Twitter size={16} />
+                </button>
+                <button className="w-10 h-10 bg-gray-200 hover:bg-pink-500 rounded-full flex items-center justify-center text-gray-600 hover:text-white transition-all duration-300">
+                  <Instagram size={16} />
+                </button>
+                <button className="w-10 h-10 bg-gray-200 hover:bg-pink-500 rounded-full flex items-center justify-center text-gray-600 hover:text-white transition-all duration-300">
+                  <Mail size={16} />
+                </button>
+                <button className="w-10 h-10 bg-gray-200 hover:bg-pink-500 rounded-full flex items-center justify-center text-gray-600 hover:text-white transition-all duration-300">
+                  <Youtube size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          .footer-link {
-            color: #d1d5db;
-            text-decoration: none;
-            font-size: 1rem;
-            display: block;
-            margin-bottom: 0.75rem;
-            transition: color 0.3s ease, transform 0.3s ease;
-          }
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="lg:col-span-1">
+            <h4 className="text-lg font-semibold text-gray-800 mb-6">
+              Về Lotus Japan Mall
+            </h4>
+            <div className="space-y-4 text-gray-600">
+              <p className="leading-relaxed">
+                Lotus Japan Mall thuộc Công ty Cổ phần Tập đoàn Thực phẩm Hoa Sen Số đăng ký kinh doanh: 0312949668
+              </p>
+              <div className="flex items-start gap-3">
+                <MapPin className="text-pink-500 mt-1 flex-shrink-0" size={16} />
+                <span>9-9A Nơ Trang Long, Phường 7, Quận Bình Thạnh, Thành phố Hồ Chí Minh</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="text-pink-500" size={16} />
+                <span>0906 990 117</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="text-pink-500" size={16} />
+                <span>info@lotusjapanmall.com.vn</span>
+              </div>
+            </div>
+          </div>
 
-          .footer-link:hover, .footer-link:focus {
-            color: #1a73e8;
-            transform: translateX(5px);
-          }
+          {/* Product Categories */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-800 mb-6">
+              Danh mục sản phẩm
+            </h4>
+            <ul className="space-y-3">
+              {[
+                "Thực phẩm",
+                "Mẹ và Bé",
+                "Hóa mỹ phẩm",
+                "Nhà cửa đời sống",
+                "Thực phẩm bảo vệ sức khỏe",
+                "Sản phẩm khuyến mãi",
+                "Hàng mới về"
+              ].map((item, index) => (
+                <li key={index}>
+                  <button
+                    className="text-gray-600 hover:text-pink-500 transition-colors duration-300 text-left"
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          .footer-contact-item {
-            font-size: 1rem;
-            color: #d1d5db;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: color 0.3s ease;
-          }
+          {/* Policies */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-800 mb-6">
+              Chính sách
+            </h4>
+            <ul className="space-y-3">
+              {[
+                "Tìm kiếm",
+                "Giới thiệu",
+                "Chính sách chung",
+                "Chính sách bảo mật",
+                "Chính sách đổi trả",
+                "Chính sách vận chuyển",
+                "Điều khoản dịch vụ",
+                "Quyền và nghĩa vụ dại bên",
+                "Quy trình cung cấp dịch vụ",
+                "Chính sách bảo mật thanh toán"
+              ].map((item, index) => (
+                <li key={index}>
+                  <button
+                    className="text-gray-600 hover:text-pink-500 transition-colors duration-300 text-left"
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          .footer-contact-item:hover {
-            color: #ffffff;
-          }
-
-          .footer-contact-item strong {
-            color: #ffffff;
-            font-weight: 500;
-          }
-
-          .footer-divider {
-            border-color: rgba(255, 255, 255, 0.1);
-            margin: 2rem 0;
-          }
-
-          .footer-copyright {
-            font-size: 0.9rem;
-            color: #adb5bd;
-            text-align: center;
-          }
-
-          .footer-column {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .footer-link-list {
-            padding-left: 0;
-            list-style: none;
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-
-          @media (max-width: 767px) {
-            .footer-column {
-              margin-bottom: 2.5rem;
-              align-items: center;
-              text-align: center;
-            }
-            .footer-heading::after {
-              left: 50%;
-              transform: translateX(-50%);
-            }
-            .footer-text {
-              max-width: 100%;
-            }
-            .footer-link {
-              margin-bottom: 1rem;
-            }
-            .footer-contact-item {
-              justify-content: center;
-            }
-          }
-        `}
-            </style>
-            <footer className="footer">
-                <div className="container">
-                    <div className="row">
-                        {/* Information column */}
-                        <div className="col-md-4 footer-column">
-                            <h5 className="footer-heading">Maverick Dresses</h5>
-                            <p className="footer-text">
-                                We provide high-quality dresses with dedicated support services
-                                and the latest fashion trends.
-                            </p>
-                        </div>
-
-                        {/* Navigation column */}
-                        <div className="col-md-4 footer-column">
-                            <h5 className="footer-heading">Links</h5>
-                            <ul className="footer-link-list">
-                                <li>
-                                    <Link
-                                        to="/about"
-                                        className="footer-link"
-                                        aria-label="Go to About page"
-                                    >
-                                        About
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/contact"
-                                        className="footer-link"
-                                        aria-label="Go to Contact page"
-                                    >
-                                        Contact
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/products"
-                                        className="footer-link"
-                                        aria-label="Go to Products page"
-                                    >
-                                        Products
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/policy"
-                                        className="footer-link"
-                                        aria-label="Go to Policy page"
-                                    >
-                                        Policy
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Contact column */}
-                        <div className="col-md-4 footer-column">
-                            <h5 className="footer-heading">Contact</h5>
-                            <p className="footer-contact-item">
-                                <FaEnvelope size={16} />
-                                <strong>Email:</strong> support@maverickdresses.com
-                            </p>
-                            <p className="footer-contact-item">
-                                <FaPhone size={16} />
-                                <strong>Hotline:</strong> 0123 456 789
-                            </p>
-                            <p className="footer-contact-item">
-                                <FaMapMarkerAlt size={16} />
-                                <strong>Address:</strong> 123 ABC Street, District 1, Ho Chi
-                                Minh City
-                            </p>
-                        </div>
+          {/* Fanpage */}
+          <div>
+            <h4 className="text-lg font-semibold text-gray-800 mb-6">
+              Fanpage
+            </h4>
+            <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg overflow-hidden">
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop"
+                  alt="Lotus Japan Mall Fanpage"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h5 className="font-bold text-lg mb-1">Lotus Japan Mall</h5>
+                  <p className="text-sm opacity-90">50 người theo dõi</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded text-sm font-medium cursor-pointer transition-colors">
+                      Theo dõi Trang
                     </div>
-
-                    <hr className="footer-divider" />
-                    <div className="footer-copyright">
-                        <small>
-                            © {new Date().getFullYear()} Maverick Dresses. All rights
-                            reserved.
-                        </small>
+                    <div className="bg-green-600 hover:bg-green-700 px-4 py-1 rounded text-sm font-medium cursor-pointer transition-colors">
+                      Chia sẻ
                     </div>
+                  </div>
                 </div>
-            </footer>
-        </>
-    );
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+      {/* Chat Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button className="bg-pink-500 hover:bg-pink-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110">
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;
