@@ -483,13 +483,17 @@ const ProductDetail = () => {
                                     Thương hiệu:{" "}
                                     {product.seller?.UserID ? (
                                         <button
-                                            onClick={() => navigate(`/brands/id/${product.seller.UserID}`)}
+                                            onClick={() =>
+                                                navigate(`/brands/id/${product.seller.UserID}`)
+                                            }
                                             className="text-f72585 font-medium underline hover:text-ff477e transition"
                                         >
                                             {product.seller.FullName}
                                         </button>
                                     ) : (
-                                        <span className="text-f72585 font-medium">Không xác định</span>
+                                        <span className="text-f72585 font-medium">
+                                            Không xác định
+                                        </span>
                                     )}
                                 </span>
                             </div>
@@ -498,7 +502,7 @@ const ProductDetail = () => {
                                 <div className="flex items-center gap-3">
                                     {displayPrice ? (
                                         <span className="price-text">
-                                            {displayPrice.toLocaleString("vi-VN")} ₫
+                                            {Math.floor(displayPrice).toLocaleString("vi-VN")} ₫
                                         </span>
                                     ) : (
                                         <span className="price-text text-f72585">
@@ -507,7 +511,10 @@ const ProductDetail = () => {
                                     )}
                                     {product.originalPrice && displayPrice && (
                                         <span className="text-base text-gray-400 line-through">
-                                            {product.originalPrice.toLocaleString("vi-VN")}₫
+                                            {Math.floor(product.originalPrice).toLocaleString(
+                                                "vi-VN"
+                                            )}
+                                            vn₫
                                         </span>
                                     )}
                                 </div>

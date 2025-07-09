@@ -8,23 +8,23 @@ const categories = [
     {
         title: "Thực phẩm",
         image: "/images/Cate1.png",
-        link: "/shop?category=Thực phẩm",
+        link: "/shop?category=Thực phẩm"
     },
     {
         title: "Mẹ và bé",
         image: "/images/Cate2.png",
-        link: "/shop?category=Mẹ và bé",
+        link: "/shop?category=Mẹ và bé"
     },
     {
         title: "Hóa mỹ phẩm",
         image: "/images/Cate3.png",
-        link: "/shop?category=Hóa mỹ phẩm",
+        link: "/shop?category=Hóa mỹ phẩm"
     },
     {
         title: "Nhà cửa đời sống",
         image: "/images/Cate4.png",
-        link: "/shop?category=Nhà cửa đời sống",
-    },
+        link: "/shop?category=Nhà cửa đời sống"
+    }
 ];
 
 const Category = () => {
@@ -57,30 +57,31 @@ const Category = () => {
             </div>
 
             {/* Danh sách danh mục */}
-            <div className="max-w-6xl mx-auto relative z-10">
+            <div className="max-w-6xl mx-auto relative z-10 px-4">
                 <Swiper
                     spaceBetween={16}
+                    slidesOffsetBefore={16}
+                    slidesOffsetAfter={16}
                     breakpoints={{
                         0: { slidesPerView: 1 },
                         640: { slidesPerView: 2 },
-                        1024: { slidesPerView: 4 },
+                        1024: { slidesPerView: 4 }
                     }}
                 >
                     {categories.map((category, index) => (
                         <SwiperSlide key={index}>
                             <div
                                 onClick={() => handleClick(category.link)}
-                                className="group relative text-center transform transition-all duration-500 hover:scale-110 hover:-translate-y-4 no-underline cursor-pointer"
+                                className="group relative text-center transform transition-all duration-500 hover:-translate-y-2 cursor-pointer"
                             >
                                 {/* Hình ảnh */}
                                 <div className="mb-[-35px] z-20 relative">
                                     <img
                                         src={category.image}
                                         alt={category.title}
-                                        className="mx-auto h-36 object-contain transition-all duration-500 ease-in-out group-hover:scale-125 group-hover:drop-shadow-2xl"
+                                        className="mx-auto h-36 object-contain transition-all duration-500 ease-in-out group-hover:scale-105 group-hover:drop-shadow-xl"
                                         style={{
-                                            filter:
-                                                "drop-shadow(0 10px 20px rgba(255, 182, 193, 0.3))",
+                                            filter: "drop-shadow(0 10px 20px rgba(255, 182, 193, 0.3))"
                                         }}
                                     />
                                 </div>
@@ -91,7 +92,7 @@ const Category = () => {
                                         className="text-base font-bold text-gray-800 mb-3 group-hover:text-pink-500 transition-all duration-500"
                                         style={{
                                             textDecoration: "none",
-                                            textShadow: "0 0 10px rgba(255, 182, 193, 0.4)",
+                                            textShadow: "0 0 10px rgba(255, 182, 193, 0.4)"
                                         }}
                                     >
                                         {category.title}
@@ -103,7 +104,7 @@ const Category = () => {
                 </Swiper>
             </div>
 
-            {/* Keyframe có thể dùng nếu bạn thêm hiệu ứng động */}
+            {/* Keyframe (nếu cần dùng) */}
             <style jsx>{`
         @keyframes spin {
           from {

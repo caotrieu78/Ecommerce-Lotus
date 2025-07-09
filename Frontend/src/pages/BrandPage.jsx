@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ProductService from "../services/ProductService";
+
 import SellerService from "../services/SellerService";
 import {
     ShoppingCart,
@@ -12,6 +12,7 @@ import {
     Award,
     TrendingUp,
 } from "lucide-react";
+import ProductService from "../services/productService";
 
 const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN").format(Number(price)) + "đ";

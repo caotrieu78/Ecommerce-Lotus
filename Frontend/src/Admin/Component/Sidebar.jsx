@@ -216,7 +216,7 @@ const Sidebar = ({ open }) => {
                     display: "flex",
                     justifyContent: collapsed ? "center" : "space-between",
                     alignItems: "center",
-                    padding: collapsed ? "16px 8px" : "20px 24px",
+                    padding: collapsed ? "16px 8px" : "10px 24px",
                     borderBottom: "1px solid rgba(255,255,255,0.2)",
                     background: "rgba(255,255,255,0.1)",
                 }}

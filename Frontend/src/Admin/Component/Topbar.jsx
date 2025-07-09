@@ -113,7 +113,7 @@ const Topbar = ({ onToggleSidebar }) => {
                 {/* Logo */}
                 <Box sx={{ flexGrow: 1, ml: 2 }}>
                     <img
-                        src="/images/logo copy.png"
+                        src="/images/logo.png"
                         alt="Logo"
                         style={{
                             height: 50,
