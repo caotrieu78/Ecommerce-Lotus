@@ -5,12 +5,7 @@ const API_BASE_URL = environments.apiBaseUrl;
 
 const getAuthHeader = () => {
     const token = localStorage.getItem("access_token");
-    if (token) {
-        return {
-            "Authorization": `Bearer ${token}`,
-        };
-    }
-    return {};
+    return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 const SellerService = {
@@ -78,39 +73,53 @@ const SellerService = {
         }
     },
 
-    // Tạo nhãn hàng (dành cho seller)
+    // ✅ Tạo nhãn hàng (multipart/form-data)
     createInfo: async (data) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/seller-infos`, data, {
+            const formData = new FormData();
+            for (const key in data) {
+                if (data[key] !== undefined && data[key] !== null) {
+                    formData.append(key, data[key]);
+                }
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/seller-infos`, formData, {
                 headers: {
-                    'Content-Type': 'application/json',
                     ...getAuthHeader(),
+                    'Content-Type': 'multipart/form-data',
                 },
             });
             return response.data;
         } catch (error) {
-            console.error('Error creating seller info:', error);
-            throw new Error('Unable to create seller info');
+            console.error('Error creating seller info:', error.response?.data || error.message);
+            throw new Error(error.response?.data?.message || 'Unable to create seller info');
         }
     },
 
-    // Cập nhật nhãn hàng
+    // ✅ Cập nhật nhãn hàng (multipart/form-data)
     updateInfo: async (data) => {
         try {
-            const response = await axios.put(`${API_BASE_URL}/seller-infos`, data, {
+            const formData = new FormData();
+            for (const key in data) {
+                if (data[key] !== undefined && data[key] !== null) {
+                    formData.append(key, data[key]);
+                }
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/seller-infos?_method=PUT`, formData, {
                 headers: {
-                    'Content-Type': 'application/json',
                     ...getAuthHeader(),
+                    'Content-Type': 'multipart/form-data',
                 },
             });
             return response.data;
         } catch (error) {
-            console.error('Error updating seller info:', error);
-            throw new Error('Unable to update seller info');
+            console.error('Error updating seller info:', error.response?.data || error.message);
+            throw new Error(error.response?.data?.message || 'Unable to update seller info');
         }
     },
 
-    //  Xoá nhãn hàng
+    // Xoá nhãn hàng
     deleteInfo: async () => {
         try {
             const response = await axios.delete(`${API_BASE_URL}/seller-infos`, {
@@ -122,6 +131,19 @@ const SellerService = {
         } catch (error) {
             console.error('Error deleting seller info:', error);
             throw new Error('Unable to delete seller info');
+        }
+    },
+    getById: async (id) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/seller-infos/${id}`, {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching seller info by ID:', error);
+            throw new Error('Unable to fetch seller info by ID');
         }
     },
 };

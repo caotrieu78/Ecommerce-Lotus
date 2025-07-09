@@ -5,8 +5,10 @@ import Category from "../components/Category";
 import SuggestedProducts from "../components/SuggestedProducts";
 import BrandSlider from "../components/BrandSlider";
 import CategoryProductSection from "../components/CategoryProductSection";
-import ProductService from "../services/ProductService";
+
 import ContentBannerSection from "../components/ContentBannerSection";
+import ProductService from "../services/productService";
+
 const Home = () => {
     // ✅ Không lọc theo tab
     const handleFetchAllProducts = async () => {

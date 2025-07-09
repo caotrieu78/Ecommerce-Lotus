@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
-import {
-    FaUser,
-    FaLock,
-    FaEnvelope,
-    FaUserCircle,
-    FaEye,
-    FaEyeSlash
-} from "react-icons/fa";
 
 const Register = () => {
     const [form, setForm] = useState({
@@ -33,16 +25,16 @@ const Register = () => {
         setError("");
 
         if (form.Password !== form.ConfirmPassword) {
-            setError("Password and confirm password do not match.");
+            setError("Mật khẩu và xác nhận mật khẩu không khớp.");
             return;
         }
 
         try {
             await register(form);
-            alert("Registration successful, please login");
+            alert("Đăng ký thành công, vui lòng đăng nhập");
             navigate("/login");
         } catch (err) {
-            setError(err.message || "Registration failed");
+            setError(err.message || "Đăng ký thất bại");
         }
     };
 
@@ -64,294 +56,256 @@ const Register = () => {
                     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
                     .register-container {
-                        background: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
+                        background: linear-gradient(135deg, #fff0f5 0%, #ffe4e6 100%);
                         min-height: 100vh;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        padding: 2rem 0;
+                        padding: 1rem 0;
                     }
 
                     .register-card {
-                        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                        border-radius: 15px;
-                        padding: 2.5rem;
-                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                        border: 1px solid transparent;
-                        border-image: linear-gradient(45deg, #1a73e8, #4dabf7) 1;
-                        animation: fadeIn 0.5s ease-in-out;
-                        max-width: 500px;
-                        width: 100%;
-                        position: relative;
-                        overflow: hidden;
-                    }
-
-                    .register-card::before {
-                        content: '';
-                        position: absolute;
-                        top: -50%;
-                        left: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: radial-gradient(circle, rgba(26, 115, 232, 0.1) 0%, transparent 70%);
-                        animation: rotate 10s linear infinite;
-                        z-index: 0;
-                    }
-
-                    .register-card > * {
-                        position: relative;
-                        z-index: 1;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        padding: 2rem;
+                        box-shadow: 0 4px 15px rgba(255, 105, 180, 0.15);
+                        max-width: 380px;
+                        width: 90%;
+                        text-align: center;
+                        border: 1px solid #ffccd5;
                     }
 
                     .register-title {
-                        font-size: 2rem;
-                        color: #2c3e50;
-                        margin-bottom: 2rem;
-                        text-align: center;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                    }
-
-                    .form-label {
-                        font-size: 1.1rem;
-                        font-weight: 500;
-                        color: #34495e;
-                        margin-bottom: 0.75rem;
-                        display: block;
+                        font-family: 'Poppins', sans-serif;
+                        font-size: 1.8rem;
+                        color: #ff69b4;
+                        margin-bottom: 1.2rem;
+                        font-weight: 600;
+                        letter-spacing: 0.5px;
                     }
 
                     .form-control {
-                        border: 2px solid #e0e6f0;
-                        border-radius: 10px;
-                        padding: 1rem 1.5rem;
-                        font-size: 1.1rem;
-                        background: #ffffff;
+                        border: 1px solid #ffdddfe;
+                        border-radius: 6px;
+                        padding: 0.85rem;
+                        font-size: 0.95rem;
+                        width: 100%;
+                        margin-bottom: 0.9rem;
+                        background: #fff5f7;
                         transition: all 0.3s ease;
-                        position: relative;
-                        z-index: 1;
+                        font-family: 'Poppins', sans-serif;
+                        box-sizing: border-box;
                     }
 
                     .form-control:focus {
-                        border-color: #1a73e8;
-                        box-shadow: 0 0 12px rgba(26, 115, 232, 0.3);
-                        background: #f9fbff;
+                        border-color: #ff69b4;
+                        box-shadow: 0 0 6px rgba(255, 105, 180, 0.2);
+                        background: #ffffff;
+                        outline: none;
                     }
 
-                    .input-group {
+                    .password-wrapper {
                         position: relative;
-                        margin-bottom: 1.5rem;
-                    }
-
-                    .input-icon {
-                        position: absolute;
-                        left: 1.2rem;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        color: #7f8c8d;
-                        font-size: 1.2rem;
-                        transition: all 0.3s ease;
-                    }
-
-                    .form-control:focus + .input-icon {
-                        color: #1a73e8;
-                        animation: pulse 0.5s ease;
+                        margin-bottom: 0.9rem;
                     }
 
                     .toggle-password {
                         position: absolute;
-                        right: 1.2rem;
+                        right: 10px;
                         top: 50%;
                         transform: translateY(-50%);
-                        color: #7f8c8d;
-                        font-size: 1.2rem;
+                        color: #ff69b4;
                         cursor: pointer;
-                        transition: all 0.3s ease;
-                        z-index: 2;
+                        font-size: 1.1rem;
+                        transition: color 0.3s ease;
                     }
 
                     .toggle-password:hover {
-                        color: #1a73e8;
-                    }
-
-                    @keyframes pulse {
-                        0% { transform: translateY(-50%) scale(1); }
-                        50% { transform: translateY(-50%) scale(1.2); }
-                        100% { transform: translateY(-50%) scale(1); }
+                        color: #ff4d94;
                     }
 
                     .btn-primary {
-                        background: linear-gradient(90deg, #1a73e8, #4dabf7);
+                        background: linear-gradient(90deg, #ff69b4, #ff8c94);
                         border: none;
-                        padding: 0.9rem;
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        border-radius: 10px;
-                        box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
+                        padding: 0.85rem;
+                        font-size: 1rem;
+                        font-weight: 500;
+                        border-radius: 6px;
+                        color: #ffffff;
+                        width: 100%;
+                        box-shadow: 0 2px 10px rgba(255, 105, 180, 0.3);
                         transition: all 0.3s ease;
                     }
 
                     .btn-primary:hover {
                         transform: translateY(-2px);
-                        box-shadow: 0 6px 20px rgba(26, 115, 232, 0.5);
+                        box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
+                        background: linear-gradient(90deg, #ff4d94, #ff6b81);
                     }
 
                     .btn-primary:active {
                         transform: translateY(0);
-                        box-shadow: 0 2px 10px rgba(26, 115, 232, 0.3);
+                        box-shadow: 0 1px 5px rgba(255, 105, 180, 0.2);
                     }
 
                     .alert-danger {
-                        border-radius: 10px;
-                        font-size: 1rem;
-                        margin-bottom: 1.5rem;
+                        border-radius: 6px;
+                        font-size: 0.85rem;
+                        margin-bottom: 0.8rem;
                         background: #ffebee;
-                        border: 1px solid #ef5350;
-                        color: #c62828;
+                        border: 1px solid #ff9999;
+                        color: #d32f2f;
+                        padding: 0.4rem;
+                        font-family: 'Poppins', sans-serif;
                     }
 
                     .login-link {
-                        color: #1a73e8;
+                        color: #ff69b4;
                         text-decoration: none;
                         font-weight: 500;
-                        transition: color 0.3s ease;
+                        font-family: 'Poppins', sans-serif;
                     }
 
                     .login-link:hover {
-                        color: #1565c0;
+                        color: #ff4d94;
                         text-decoration: underline;
                     }
 
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(20px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-
-                    @keyframes rotate {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-
-                    @media (max-width: 576px) {
+                    @media (max-width: 768px) {
                         .register-card {
                             padding: 1.5rem;
-                            margin: 0 1rem;
+                            margin: 0 0.5rem;
                         }
                         .register-title {
-                            font-size: 1.5rem;
+                            font-size: 1.6rem;
                         }
                         .form-control {
-                            font-size: 1rem;
-                            padding: 0.75rem 1.2rem;
-                        }
-                        .input-icon, .toggle-password {
-                            font-size: 1rem;
-                            left: 0.8rem;
+                            font-size: 0.9rem;
+                            padding: 0.75rem;
                         }
                         .toggle-password {
-                            right: 0.8rem;
+                            font-size: 1rem;
+                            right: 8px;
                         }
                         .btn-primary {
-                            font-size: 1rem;
+                            font-size: 0.95rem;
                             padding: 0.75rem;
+                        }
+                    }
+
+                    @media (max-width: 480px) {
+                        .register-title {
+                            font-size: 1.4rem;
+                        }
+                        .form-control {
+                            font-size: 0.85rem;
+                            padding: 0.7rem;
+                        }
+                        .btn-primary {
+                            font-size: 0.9rem;
+                        }
+                        .toggle-password {
+                            font-size: 0.9rem;
+                            right: 7px;
+                        }
+                    }
+
+                    @media (max-width: 320px) {
+                        .register-card {
+                            padding: 1rem;
+                        }
+                        .register-title {
+                            font-size: 1.2rem;
+                        }
+                        .form-control {
+                            font-size: 0.8rem;
+                            padding: 0.6rem;
+                        }
+                        .btn-primary {
+                            font-size: 0.85rem;
+                            padding: 0.7rem;
                         }
                     }
                 `}
             </style>
             <div className="register-card">
-                <h3 className="register-title fw-bold">Register</h3>
+                <h3 className="register-title">Đăng Ký</h3>
 
-                {error && (
-                    <div className="alert alert-danger text-center py-2">{error}</div>
-                )}
+                {error && <div className="alert alert-danger">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
-                    <div className="input-group mb-3">
-                        <input
-                            type="text"
-                            name="Username"
-                            className="form-control"
-                            value={form.Username}
-                            onChange={handleChange}
-                            placeholder="Enter username"
-                            required
-                        />
-                        <FaUser className="input-icon" size={18} />
-                    </div>
+                    <input
+                        type="text"
+                        name="Username"
+                        className="form-control"
+                        value={form.Username}
+                        onChange={handleChange}
+                        placeholder="Tên đăng nhập"
+                        required
+                    />
 
-                    <div className="input-group mb-3">
+                    <div className="password-wrapper">
                         <input
                             type={showPassword ? "text" : "password"}
                             name="Password"
                             className="form-control"
                             value={form.Password}
                             onChange={handleChange}
-                            placeholder="Enter password"
+                            placeholder="Mật khẩu"
                             required
                         />
-                        <FaLock className="input-icon" size={18} />
                         <span
                             className="toggle-password"
                             onClick={togglePasswordVisibility}
                         >
-                            {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                            {showPassword ? "👁️" : "👁️‍🗨️"}
                         </span>
                     </div>
 
-                    <div className="input-group mb-3">
+                    <div className="password-wrapper">
                         <input
                             type={showConfirmPassword ? "text" : "password"}
                             name="ConfirmPassword"
                             className="form-control"
                             value={form.ConfirmPassword}
                             onChange={handleChange}
-                            placeholder="Confirm password"
+                            placeholder="Xác nhận mật khẩu"
                             required
                         />
-                        <FaLock className="input-icon" size={18} />
                         <span
                             className="toggle-password"
                             onClick={toggleConfirmPasswordVisibility}
                         >
-                            {showConfirmPassword ? (
-                                <FaEyeSlash size={18} />
-                            ) : (
-                                <FaEye size={18} />
-                            )}
+                            {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
                         </span>
                     </div>
 
-                    <div className="input-group mb-3">
-                        <input
-                            type="email"
-                            name="Email"
-                            className="form-control"
-                            value={form.Email}
-                            onChange={handleChange}
-                            placeholder="Enter email (optional)"
-                        />
-                        <FaEnvelope className="input-icon" size={18} />
-                    </div>
+                    <input
+                        type="email"
+                        name="Email"
+                        className="form-control"
+                        value={form.Email}
+                        onChange={handleChange}
+                        placeholder="Email (tùy chọn)"
+                    />
 
-                    <div className="input-group mb-4">
-                        <input
-                            type="text"
-                            name="FullName"
-                            className="form-control"
-                            value={form.FullName}
-                            onChange={handleChange}
-                            placeholder="Enter full name (optional)"
-                        />
-                        <FaUserCircle className="input-icon" size={18} />
-                    </div>
+                    <input
+                        type="text"
+                        name="FullName"
+                        className="form-control"
+                        value={form.FullName}
+                        onChange={handleChange}
+                        placeholder="Họ và tên (tùy chọn)"
+                    />
 
-                    <button type="submit" className="btn btn-primary w-100 fw-semibold">
-                        Register
+                    <button type="submit" className="btn btn-primary">
+                        Đăng Ký
                     </button>
 
-                    <div className="mt-4 text-center">
-                        <span>Already have an account? </span>
+                    <div className="mt-3">
+                        <span>Đã có tài khoản? </span>
                         <Link to="/login" className="login-link">
-                            Login
+                            Đăng Nhập
                         </Link>
                     </div>
                 </form>

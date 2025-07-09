@@ -4,12 +4,12 @@ import {
     FaMinus,
     FaTrash,
     FaShoppingCart,
-    FaCheckCircle
+    FaCheckCircle,
+    FaGift
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import CartService from "../services/CartService";
 import { PATHS } from "../constants/paths";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const Cart = () => {
     const navigate = useNavigate();
@@ -18,25 +18,53 @@ const Cart = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [toast, setToast] = useState({ show: false, message: "", type: "" });
-    const [voucherCode, setVoucherCode] = useState("");
-    const [discount, setDiscount] = useState(0);
+    const [orderNote, setOrderNote] = useState(""); // State để quản lý ghi chú
+
+    const vouchers = [
+        {
+            code: "FREESHIP20k",
+            title: "Voucher freeship 20k",
+            subtitle: "Đơn hàng từ 500k",
+            expiry: "HSD: 5/12/2025",
+            type: "SAO CHÉP MÃ"
+        },
+        {
+            code: "GIAM5%",
+            title: "Giảm 5%",
+            subtitle: "Đơn hàng từ 1.000.000đ",
+            expiry: "HSD: 5/12/2025",
+            type: "SAO CHÉP MÃ"
+        }
+    ];
+
+    // Calculate subtotal and total
+    const subtotal = useMemo(() => {
+        return cartItems.reduce(
+            (sum, item) => sum + item.Quantity * (item.variant?.Price || 0),
+            0
+        );
+    }, [cartItems]);
+
+    const total = useMemo(() => {
+        return subtotal;
+    }, [subtotal]);
 
     useEffect(() => {
         const fetchCart = async () => {
             setIsLoading(true);
             try {
                 const data = await CartService.getAll();
-                setCartItems(data);
+                setCartItems(data ?? []);
                 setError(null);
                 setRetryCount(0);
             } catch (error) {
-                console.error("Error loading cart:", error);
+                console.error("Lỗi tải giỏ hàng:", error);
                 if (error.response?.status === 401) {
                     localStorage.removeItem("access_token");
                     navigate(PATHS.LOGIN);
                     setToast({
                         show: true,
-                        message: "Session expired. Please log in again.",
+                        message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
                         type: "error"
                     });
                     setTimeout(
@@ -46,7 +74,7 @@ const Cart = () => {
                 } else if (retryCount < 3) {
                     setTimeout(() => setRetryCount(retryCount + 1), 2000);
                 } else {
-                    setError("Unable to load cart. Please try again later.");
+                    setError("Không thể tải giỏ hàng. Vui lòng thử lại sau.");
                 }
             } finally {
                 setIsLoading(false);
@@ -68,16 +96,16 @@ const Cart = () => {
             );
             setToast({
                 show: true,
-                message: "Quantity updated successfully!",
+                message: "Cập nhật số lượng thành công!",
                 type: "success"
             });
             setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
         } catch (error) {
-            console.error("Error updating quantity:", error);
-            setError("Unable to update quantity. Please try again.");
+            console.error("Lỗi cập nhật số lượng:", error);
+            setError("Không thể cập nhật số lượng. Vui lòng thử lại.");
             setToast({
                 show: true,
-                message: "Unable to update quantity.",
+                message: "Không thể cập nhật số lượng.",
                 type: "error"
             });
             setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
@@ -86,9 +114,7 @@ const Cart = () => {
 
     const handleRemoveItem = async (variantId) => {
         if (
-            !window.confirm(
-                "Are you sure you want to remove this item from the cart?"
-            )
+            !window.confirm("Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng không?")
         )
             return;
         try {
@@ -98,631 +124,354 @@ const Cart = () => {
             );
             setToast({
                 show: true,
-                message: "Item removed from cart successfully!",
+                message: "Xóa sản phẩm khỏi giỏ hàng thành công!",
                 type: "success"
             });
             setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
         } catch (error) {
-            console.error("Error removing item:", error);
-            setError("Unable to remove item. Please try again.");
+            console.error("Lỗi xóa sản phẩm:", error);
+            setError("Không thể xóa sản phẩm. Vui lòng thử lại.");
             setToast({
                 show: true,
-                message: "Unable to remove item.",
+                message: "Không thể xóa sản phẩm.",
                 type: "error"
             });
             setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
         }
     };
 
-    const handleClearCart = async () => {
-        if (!window.confirm("Are you sure you want to clear the entire cart?"))
-            return;
-        try {
-            await CartService.clearCart();
-            setCartItems([]);
-            setToast({
-                show: true,
-                message: "Cart cleared successfully!",
-                type: "success"
-            });
-            setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
-        } catch (error) {
-            console.error("Error clearing cart:", error);
-            setError("Unable to clear cart. Please try again.");
-            setToast({
-                show: true,
-                message: "Unable to clear cart.",
-                type: "error"
-            });
-            setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
-        }
-    };
-
-    const handleApplyVoucher = () => {
-        const validVouchers = ["DISCOUNT10", "SAVE20"];
-        if (validVouchers.includes(voucherCode)) {
-            setDiscount(voucherCode === "DISCOUNT10" ? 0.1 : 0.2);
-            setToast({
-                show: true,
-                message: "Voucher applied successfully!",
-                type: "success"
-            });
-        } else {
-            setDiscount(0);
-            setToast({
-                show: true,
-                message: "Invalid voucher code!",
-                type: "error"
-            });
-        }
+    const handleCopyVoucher = (code) => {
+        navigator.clipboard.writeText(code);
+        setToast({
+            show: true,
+            message: `Đã sao chép mã ${code}!`,
+            type: "success"
+        });
         setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
     };
 
-    const subtotal = useMemo(() => {
-        return cartItems.reduce(
-            (sum, item) => sum + item.Quantity * (item.variant?.Price || 0),
-            0
-        );
-    }, [cartItems]);
-
-    const total = useMemo(() => {
-        const discountAmount = subtotal * discount;
-        return subtotal - discountAmount;
-    }, [subtotal, discount]);
-
     return (
-        <>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-['Noto_Sans_JP']">
             <style>
                 {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-          .cart-container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin: 2rem auto;
-            max-width: 1200px;
-            font-family: 'Inter', sans-serif;
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
           }
-          .cart-header {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-            letter-spacing: -0.02em;
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
           }
-          .progress-steps {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2.5rem;
-            position: relative;
-          }
-          .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-          }
-          .progress-step-circle {
-            width: 2.75rem;
-            height: 2.75rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 1.25rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          }
-          .progress-step-circle.active {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: #ffffff;
-          }
-          .progress-step-circle.inactive {
-            background: #f1f3f5;
-            color: #6b7280;
-          }
-          .progress-step-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #6b7280;
-            margin-top: 0.75rem;
-            text-transform: uppercase;
-          }
-          .progress-connector {
-            position: absolute;
-            top: 1.375rem;
-            height: 0.3rem;
-            background: #f1f3f5;
-            z-index: 0;
-          }
-          .progress-connector-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-            transition: width 0.4s ease;
-            border-radius: 2px;
-          }
-          .cart-item {
-            background: #f8f9fa;
-            border-radius: 0.375rem;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            transition: box-shadow 0.2s ease;
-          }
-          .cart-item:hover {
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-          }
-          .cart-item-img {
-            width: 5rem;
-            height: 5rem;
-            object-fit: cover;
-            border-radius: 0.25rem;
-            border: 1px solid #dee2e6;
-            margin-right: 1rem;
-          }
-          .cart-item-info h5 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 0.5rem;
-          }
-          .cart-item-info small {
-            font-size: 0.875rem;
-            color: #6c757d;
-          }
-          .quantity-control {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
+          .animate-slide-in { animation: slideIn 0.5s ease-out; }
+          .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+          .hover-scale { transition: transform 0.3s ease; }
+          .hover-scale:hover { transform: scale(1.05); }
+          .progress-bar {
+            height: 4px;
+            background-color: #f3f4f6;
+            border-radius: 9999px;
             overflow: hidden;
           }
-          .btn-quantity {
-            width: 2.5rem;
-            height: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            background: #fff;
-            color: #6c757d;
-            font-size: 1rem;
-            transition: background-color 0.2s ease;
+          .progress-bar-fill {
+            height: 100%;
+            background-color: #ec4899;
+            width: 33.33%;
+            transition: width 0.3s ease;
+            border-radius: 9999px;
           }
-          .btn-quantity:hover {
-            background-color: #e9ecef;
+          .gradient-btn {
+            background: linear-gradient(45deg, #ec4899, #f472b6);
+            transition: all 0.3s ease;
           }
-          .btn-quantity:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+          .gradient-btn:hover {
+            background: linear-gradient(45deg, #db2777, #e879f9);
+            transform: scale(1.05);
           }
-          .quantity-display {
-            width: 3rem;
-            text-align: center;
-            font-size: 1rem;
-            border: none;
-            background: #f8f9fa;
-            line-height: 2.5rem;
+          .note-box {
+            background-color: #fff5f7; /* Nền hồng nhạt */
+            border: 1px solid #f472b6; /* Viền hồng nhạt */
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            margin-top: 0.25rem;
+            color: #f472b6; /* Chữ hồng nhạt */
+            font-size: 0.75rem; /* Kích thước nhỏ */
           }
-          .summary-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            position: sticky;
-            top: 2rem;
-            border: 1px solid #e5e7eb;
+          .note-input {
+            border: 1px solid #f472b6;
+            border-radius: 4px;
+            padding: 0.5rem;
+            width: 100%;
+            resize: none;
+            font-size: 0.875rem;
+            color: #374151;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
           }
-          .summary-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 1.75rem;
-          }
-          .summary-total {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-          }
-          .voucher-input {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            background: #f8f9fa;
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            border: 1px solid #dee2e6;
-          }
-          .voucher-input input {
-            flex-grow: 1;
-            border: none;
-            background: transparent;
-            font-size: 1rem;
+          .note-input:focus {
             outline: none;
-          }
-          .voucher-input input:focus {
-            box-shadow: none;
-          }
-          .voucher-input button {
-            padding: 0.5rem 1.5rem;
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-            color: #fff;
-            border: none;
-            border-radius: 0.25rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-          }
-          .voucher-input button:hover {
-            background: linear-gradient(90deg, #27ae60, #219653);
-            transform: translateY(-1px);
-          }
-          .checkout-btn {
-            background: linear-gradient(90deg, #2563eb, #1e40af);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 1rem 2rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
-            letter-spacing: 0.02em;
-          }
-          .checkout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-          }
-          .checkout-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-          }
-          .continue-shopping-btn {
-            background: #f8f9fa;
-            color: #212529;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem 2rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 1rem;
-            transition: background-color 0.2s ease;
-          }
-          .continue-shopping-btn:hover {
-            background-color: #e9ecef;
-          }
-          .clear-cart-btn {
-            background: #dc3545;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            transition: background-color 0.2s ease;
-          }
-          .clear-cart-btn:hover {
-            background: #c82333;
-          }
-          .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            color: #ffffff;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            animation: slideIn 0.4s ease-out;
-            font-weight: 500;
-          }
-          .toast.success {
-            background: #2ecc71;
-          }
-          .toast.error {
-            background: #dc3545;
-          }
-          .skeleton {
-            background: #e9ecef;
-            border-radius: 0.25rem;
-            animation: pulse 0.5s infinite ease-in-out;
-          }
-          .skeleton-img {
-            width: 5rem;
-            height: 5rem;
-            margin-right: 1rem;
-          }
-          .skeleton-text {
-            height: 1.25rem;
-            margin-bottom: 0.5rem;
-          }
-          @keyframes pulse {
-            0% { background-color: #e9ecef; }
-            50% { background-color: #dee2e6; }
-            100% { background-color: #e9ecef; }
-          }
-          @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @media (max-width: 992px) {
-            .cart-container {
-              padding: 1.5rem;
-            }
-            .cart-item-img {
-              width: 4rem;
-              height: 4rem;
-            }
-            .cart-item-info h5 {
-              font-size: 1rem;
-            }
-            .cart-item-info small {
-              font-size: 0.75rem;
-            }
-            .btn-quantity {
-              width: 2rem;
-              height: 2rem;
-              font-size: 0.875rem;
-            }
-            .quantity-display {
-              width: 2.5rem;
-              font-size: 0.875rem;
-              line-height: 2rem;
-            }
-            .summary-card {
-              position: static;
-              margin-top: 2rem;
-            }
-            .clear-cart-btn {
-              padding: 0.5rem 1rem;
-              font-size: 0.875rem;
-            }
-            .checkout-btn, .continue-shopping-btn {
-              font-size: 1rem;
-              padding: 0.5rem 1rem;
-            }
-            .voucher-input {
-              padding: 0.5rem;
-            }
-            .voucher-input input {
-              font-size: 0.875rem;
-            }
-            .voucher-input button {
-              padding: 0.375rem 1rem;
-              font-size: 0.875rem;
-            }
+            border-color: #ec4899;
+            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2);
           }
         `}
             </style>
-            <div className="container cart-container">
-                <h2 className="cart-header" role="heading" aria-level="2">
-                    <FaShoppingCart className="me-2" /> Your Cart
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-7xl">
+                <h2
+                    className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-3 mb-8 animate-slide-in"
+                    role="heading"
+                    aria-level="2"
+                >
+                    <FaShoppingCart className="text-pink-600" /> Giỏ hàng của bạn
                 </h2>
 
                 {/* Progress Bar */}
-                <div className="progress-steps">
-                    <div
-                        className="progress-connector"
-                        style={{ left: "2.75rem", right: "2.75rem" }}
-                    >
-                        <div
-                            className="progress-connector-fill"
-                            style={{ width: "33%" }}
-                        ></div>
+                <div className="flex justify-between mb-10 relative animate-slide-in">
+                    <div className="absolute top-5 left-10 right-10 progress-bar">
+                        <div className="progress-bar-fill"></div>
                     </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle active">1</div>
-                        <span className="progress-step-label">Cart</span>
-                    </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle inactive">2</div>
-                        <span className="progress-step-label">Checkout</span>
-                    </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle inactive">3</div>
-                        <span className="progress-step-label">Complete</span>
-                    </div>
+                    {["Giỏ hàng", "Thanh toán", "Hoàn tất"].map((step, index) => (
+                        <div key={index} className="flex flex-col items-center z-10">
+                            <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-lg shadow-md transition-colors ${index === 0
+                                    ? "bg-pink-600 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                                    }`}
+                            >
+                                {index + 1}
+                            </div>
+                            <span className="mt-2 text-sm font-medium text-gray-600">
+                                {step}
+                            </span>
+                        </div>
+                    ))}
                 </div>
 
                 {isLoading ? (
-                    <div className="mb-4">
+                    <div className="space-y-4">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="cart-item">
-                                <div className="skeleton skeleton-img"></div>
-                                <div className="flex-grow-1">
-                                    <div className="skeleton skeleton-text w-75"></div>
-                                    <div className="skeleton skeleton-text w-50"></div>
+                            <div
+                                key={i}
+                                className="flex items-center p-4 bg-white border border-gray-200 rounded-lg shadow-sm animate-pulse"
+                            >
+                                <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
+                                <div className="ml-4 flex-1 space-y-2">
+                                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : error ? (
-                    <div
-                        className="alert alert-danger d-flex justify-content-between align-items-center mb-4"
-                        role="alert"
-                    >
+                    <div className="bg-red-100 text-red-600 p-4 rounded-lg flex justify-between items-center mb-6 animate-fade-in">
                         <span>{error}</span>
                         <button
-                            className="btn btn-danger btn-sm"
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors hover-scale"
                             onClick={() => setRetryCount(retryCount + 1)}
-                            aria-label="Retry"
+                            aria-label="Thử lại"
                         >
-                            Retry
+                            Thử lại
                         </button>
                     </div>
                 ) : cartItems.length === 0 ? (
-                    <div className="text-center py-5">
-                        <p className="text-muted mb-4 fs-5">Your cart is empty!</p>
+                    <div className="text-center py-12 animate-fade-in">
+                        <p className="text-gray-500 text-lg mb-4">
+                            Giỏ hàng của bạn đang trống!
+                        </p>
                         <button
-                            className="btn btn-primary btn-lg"
+                            className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition-colors hover-scale"
                             onClick={() => navigate(PATHS.HOME)}
-                            aria-label="Continue shopping"
+                            aria-label="Tiếp tục mua sắm"
                         >
-                            Continue Shopping
+                            Tiếp tục mua sắm
                         </button>
                     </div>
                 ) : (
-                    <div className="row">
-                        <div className="col-lg-8">
-                            <div className="mb-4">
-                                {cartItems.map((item) => (
-                                    <div
-                                        key={item.variant.VariantID}
-                                        className="cart-item"
-                                        role="listitem"
-                                    >
-                                        <img
-                                            src={
-                                                item.variant?.ImageURL ||
-                                                "https://via.placeholder.com/80"
-                                            }
-                                            alt={item.variant?.product?.ProductName || "Product"}
-                                            className="cart-item-img"
-                                        />
-                                        <div className="cart-item-info flex-grow-1">
-                                            <h5>
-                                                {item.variant?.product?.ProductName ||
-                                                    "Unknown Product"}
-                                            </h5>
-                                            <small>
-                                                Size: {item.variant?.size?.SizeName || "-"} | Color:{" "}
-                                                {item.variant?.color?.ColorName || "-"}
-                                            </small>
-                                            <div className="d-flex align-items-center mt-2">
-                                                <div className="quantity-control me-3">
-                                                    <button
-                                                        className="btn-quantity"
-                                                        onClick={() =>
-                                                            handleQuantity(
-                                                                item.variant.VariantID,
-                                                                item.Quantity - 1
-                                                            )
-                                                        }
-                                                        disabled={item.Quantity <= 1}
-                                                        aria-label="Decrease quantity"
-                                                    >
-                                                        <FaMinus />
-                                                    </button>
-                                                    <span className="quantity-display">
-                                                        {item.Quantity}
-                                                    </span>
-                                                    <button
-                                                        className="btn-quantity"
-                                                        onClick={() =>
-                                                            handleQuantity(
-                                                                item.variant.VariantID,
-                                                                item.Quantity + 1
-                                                            )
-                                                        }
-                                                        aria-label="Increase quantity"
-                                                    >
-                                                        <FaPlus />
-                                                    </button>
-                                                </div>
-                                                <span className="text-primary fw-semibold">
-                                                    {(
-                                                        item.Quantity * (item.variant?.Price || 0)
-                                                    ).toLocaleString("en-US")}{" "}
-                                                    $
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            className="btn btn-outline-danger btn-sm"
-                                            onClick={() => handleRemoveItem(item.variant.VariantID)}
-                                            aria-label="Remove item"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <button
-                                className="clear-cart-btn"
-                                onClick={handleClearCart}
-                                aria-label="Clear cart"
-                            >
-                                Clear Cart
-                            </button>
-                        </div>
-                        <div className="col-lg-4">
-                            <div className="summary-card">
-                                <h4 className="summary-title">Order Summary</h4>
-                                <div className="voucher-input">
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Enter voucher code"
-                                        value={voucherCode}
-                                        onChange={(e) => setVoucherCode(e.target.value)}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-4">
+                            {cartItems.map((item) => (
+                                <div
+                                    key={item.variant.VariantID}
+                                    className="flex items-center p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow animate-fade-in"
+                                    role="listitem"
+                                >
+                                    <img
+                                        src={
+                                            item.variant?.ImageURL ||
+                                            item.variant?.product?.ThumbnailURL ||
+                                            "https://placehold.co/80x80?text=No+Image"
+                                        }
+                                        alt={item.variant?.product?.ProductName || "Sản phẩm"}
+                                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                        loading="lazy"
+                                        onError={(e) =>
+                                        (e.target.src =
+                                            "https://placehold.co/80x80?text=No+Image")
+                                        }
                                     />
+                                    <div className="ml-4 flex-1">
+                                        <h5 className="text-base font-semibold text-gray-800">
+                                            {item.variant?.product?.ProductName ||
+                                                "Sản phẩm không xác định"}
+                                        </h5>
+                                        <p className="text-sm text-gray-500">
+                                            Kích thước: {item.variant?.size?.SizeName || "-"} | Màu
+                                            sắc: {item.variant?.color?.ColorName || "-"}
+                                        </p>
+                                        <div className="flex items-center mt-2 gap-4">
+                                            <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                                                <button
+                                                    className="px-3 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    onClick={() =>
+                                                        handleQuantity(
+                                                            item.variant.VariantID,
+                                                            item.Quantity - 1
+                                                        )
+                                                    }
+                                                    disabled={item.Quantity <= 1}
+                                                    aria-label="Giảm số lượng"
+                                                >
+                                                    <FaMinus />
+                                                </button>
+                                                <span className="px-4 py-2 font-medium text-gray-800">
+                                                    {item.Quantity}
+                                                </span>
+                                                <button
+                                                    className="px-3 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    onClick={() =>
+                                                        handleQuantity(
+                                                            item.variant.VariantID,
+                                                            item.Quantity + 1
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        item.Quantity >= (item.variant?.StockQuantity || 10)
+                                                    }
+                                                    aria-label="Tăng số lượng"
+                                                >
+                                                    <FaPlus />
+                                                </button>
+                                            </div>
+                                            <span className="text-pink-600 font-semibold">
+                                                {(
+                                                    item.Quantity * (item.variant?.Price || 0)
+                                                ).toLocaleString("vi-VN")}{" "}
+                                                ₫
+                                            </span>
+                                        </div>
+                                        <div className="note-box">
+                                            * Sản phẩm được giao trong 2-3 ngày làm việc
+                                        </div>
+                                    </div>
                                     <button
-                                        className="btn btn-primary"
-                                        onClick={handleApplyVoucher}
+                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                        onClick={() => handleRemoveItem(item.variant.VariantID)}
+                                        aria-label="Xóa sản phẩm"
                                     >
-                                        Apply
+                                        <FaTrash />
                                     </button>
                                 </div>
-                                <div className="summary-total">
-                                    <span>Subtotal:</span>
-                                    <span>{subtotal.toLocaleString("en-US")} $</span>
-                                </div>
-                                {discount > 0 && (
-                                    <div className="summary-total">
-                                        <span>Discount ({voucherCode}):</span>
-                                        <span>
-                                            -{Math.round(subtotal * discount).toLocaleString("en-US")}{" "}
-                                            $
-                                        </span>
+                            ))}
+                            <div className="space-y-2 mt-4">
+                                <label
+                                    htmlFor="order-note"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Ghi chú đơn hàng
+                                </label>
+                                <textarea
+                                    id="order-note"
+                                    className="note-input"
+                                    rows="3"
+                                    maxLength="200"
+                                    placeholder="*Nhập ghi chú cho đơn hàng (ví dụ: giao hàng sau 18h)"
+                                    value={orderNote}
+                                    onChange={(e) => setOrderNote(e.target.value)}
+                                    aria-label="Nhập ghi chú cho đơn hàng"
+                                />
+                                <p className="text-xs text-gray-500 text-right">
+                                    {orderNote.length}/200
+                                </p>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-1">
+                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-6">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Tổng quan đơn hàng
+                                </h4>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm font-medium text-gray-700">
+                                            <span>Tạm tính:</span>
+                                            <span>{subtotal.toLocaleString("vi-VN")} ₫</span>
+                                        </div>
+                                        <div className="flex justify-between text-base font-semibold text-gray-900">
+                                            <span>Tổng cộng:</span>
+                                            <span>{total.toLocaleString("vi-VN")} ₫</span>
+                                        </div>
                                     </div>
-                                )}
-                                <div className="summary-total">
-                                    <span>Total:</span>
-                                    <span>{total.toLocaleString("en-US")} $</span>
+                                    <div className="space-y-3">
+                                        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                            <FaGift className="text-pink-600" />
+                                            Khuyến mãi
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {vouchers.map((voucher, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50"
+                                                >
+                                                    <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                                                        <span className="text-pink-600 font-bold text-sm">
+                                                            {voucher.code.includes("FREESHIP") ? "FS" : "5%"}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-gray-800">
+                                                            {voucher.title}
+                                                        </div>
+                                                        <div className="text-xs text-gray-600">
+                                                            {voucher.subtitle} | {voucher.expiry}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        className="text-xs text-white px-3 py-1 rounded-lg gradient-btn"
+                                                        onClick={() => handleCopyVoucher(voucher.code)}
+                                                        aria-label={`Sao chép mã ${voucher.code}`}
+                                                    >
+                                                        {voucher.type}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4 hover-scale"
+                                        onClick={() =>
+                                            navigate(PATHS.CHECKOUT, {
+                                                state: { cartItems, orderNote }
+                                            })
+                                        }
+                                        disabled={cartItems.length === 0}
+                                        aria-label="Tiến hành thanh toán"
+                                    >
+                                        Tiến hành thanh toán
+                                    </button>
+                                    <button
+                                        className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors mt-2 hover-scale"
+                                        onClick={() => navigate(PATHS.HOME)}
+                                        aria-label="Tiếp tục mua sắm"
+                                    >
+                                        Tiếp tục mua sắm
+                                    </button>
                                 </div>
-                                <button
-                                    className="checkout-btn mb-2"
-                                    onClick={() =>
-                                        navigate(PATHS.CHECKOUT, {
-                                            state: { cartItems, voucherCode, discount }
-                                        })
-                                    }
-                                    aria-label="Proceed to checkout"
-                                    disabled={cartItems.length === 0}
-                                >
-                                    Proceed to Checkout
-                                </button>
-                                <button
-                                    className="continue-shopping-btn"
-                                    onClick={() => navigate(PATHS.HOME)}
-                                    aria-label="Continue shopping"
-                                >
-                                    Continue Shopping
-                                </button>
                             </div>
                         </div>
                     </div>
                 )}
+
                 {toast.show && (
                     <div
-                        className={`toast ${toast.type}`}
+                        className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-white animate-slide-in ${toast.type === "success" ? "bg-pink-600" : "bg-red-600"
+                            }`}
                         role="alert"
                         aria-live="assertive"
                     >
@@ -730,7 +479,7 @@ const Cart = () => {
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 

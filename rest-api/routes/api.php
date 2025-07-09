@@ -32,7 +32,12 @@ use App\Http\Controllers\Api\V1\{
 
 Route::prefix('v1')->group(function () {
 
+    // ✅ Public: Xem tất cả nhãn hàng & chi tiết nhãn hàng
+    Route::get('/seller-infos', [SellerInfoController::class, 'index']);
+    Route::get('/seller-infos/{id}', [SellerInfoController::class, 'show']);
+
     Route::get('/product-variants/stock-total', [ProductVariantController::class, 'getTotalStock']);
+
     // 🔓 Public routes
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -140,7 +145,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/orders/{id}', [OrderController::class, 'update']);
             Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
 
-
             // Full CRUD for other admin-only resources
             Route::apiResources([
                 'categories' => CategoryController::class,
@@ -151,8 +155,9 @@ Route::prefix('v1')->group(function () {
             ], ['except' => ['index', 'show']]);
 
             // ✅ SellerInfo view (admin)
-            Route::get('/seller-infos', [SellerInfoController::class, 'index']);
-            Route::get('/seller-infos/{id}', [SellerInfoController::class, 'show']);
+            // CHÚ Ý: không cần đặt 2 route dưới đây lại vì đã public bên ngoài
+            // Route::get('/seller-infos', [SellerInfoController::class, 'index']);
+            // Route::get('/seller-infos/{id}', [SellerInfoController::class, 'show']);
 
             // Admin statistics
             Route::prefix('admin/statistics')->group(function () {

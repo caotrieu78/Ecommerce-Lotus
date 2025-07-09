@@ -66,11 +66,29 @@ export const PATHS = {
     ABOUT: "/about",
     CONTACT: "/contact",
     PRODUCTDETAIL: "/productdetail",
+    SHOP: "/shop",
+    BLOG: "/blog",
+
+    // 👇 Thêm mới tại đây
+    ACCOUNT: "/account",
+    MY_ORDERS: "/orders",
+    FAVORITES: "/favorites",
+    // Thương hiệu
+    BRAND: "/brands/id/:id", // 🟢 để truyền ID trực tiếp
+    BRAND_DETAIL: (id) => `/brands/id/${id}`,
+
+
+
+
+    // Nhãn hàng
+    BRAND_DASHBOARD: `${DASHBOARD_PATH}/brand`,
+    BRAND_CREATE: `${DASHBOARD_PATH}/brand/create`,
+    BRAND_EDIT: (id) => `${DASHBOARD_PATH}/brand/${id}`,
+
+    // Cart / Order
     CART: "/cart",
     CHECKOUT: "/checkout",
     ORDER_CONFIRMATION: "/order-confirmation",
-    SHOP: "/shop",
-    BLOG: "/blog",
 
     // Khuyến mãi
     PROMOTION_DASHBOARD: PROMOTION_PATH,

@@ -5,11 +5,12 @@ import CartService from "../services/CartService";
 import OrderService from "../services/orderService";
 import { FaCheckCircle } from "react-icons/fa";
 import { CartContext } from "../context/CartContext";
+import QRCode from "react-qr-code"; // Thêm thư viện react-qr-code
 
 const Checkout = () => {
     const navigate = useNavigate();
     const { state } = useLocation();
-    const { clearCart } = useContext(CartContext); // Lấy clearCart từ CartContext
+    const { clearCart } = useContext(CartContext);
     const {
         cartItems: initialCartItems = [],
         voucherCode = "",
@@ -29,7 +30,6 @@ const Checkout = () => {
     });
     const [formErrors, setFormErrors] = useState({});
 
-    // Calculate subtotal using useMemo
     const subtotal = useMemo(() => {
         return cartItems.reduce(
             (sum, item) => sum + (item.Quantity || 0) * (item.variant?.Price || 0),
@@ -37,44 +37,41 @@ const Checkout = () => {
         );
     }, [cartItems]);
 
-    // Delivery fee is free
     const deliveryFee = 0;
     const [promoDiscount, setPromoDiscount] = useState(discount * subtotal);
     const total = subtotal - promoDiscount;
 
-    // Update promoDiscount when discount or subtotal changes
     useEffect(() => {
         setPromoDiscount(discount * subtotal);
     }, [discount, subtotal]);
 
-    // Fetch cart items
     useEffect(() => {
         const fetchCart = async () => {
             setIsLoading(true);
             try {
                 const data = await CartService.getAll();
                 if (!Array.isArray(data)) {
-                    throw new Error("Invalid cart data");
+                    throw new Error("Dữ liệu giỏ hàng không hợp lệ");
                 }
                 setCartItems(data);
                 setError(null);
             } catch (error) {
-                console.error("Error loading cart:", error);
+                console.error("Lỗi tải giỏ hàng:", error);
                 if (error.response?.status === 401) {
                     localStorage.removeItem("access_token");
                     navigate(PATHS.LOGIN);
                     setToast({
                         show: true,
-                        message: "Session expired. Please log in again.",
+                        message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
                         type: "error"
                     });
                     setTimeout(
                         () => setToast({ show: false, message: "", type: "" }),
-                        4000
+                        3000
                     );
                 } else {
                     setError(
-                        error.message || "Unable to load cart. Please try again later."
+                        error.message || "Không thể tải giỏ hàng. Vui lòng thử lại sau."
                     );
                 }
             } finally {
@@ -95,15 +92,15 @@ const Checkout = () => {
         switch (name) {
             case "fullName":
                 errors.fullName =
-                    value.length < 2 ? "Full name must be at least 2 characters" : "";
+                    value.length < 2 ? "Họ tên phải có ít nhất 2 ký tự" : "";
                 break;
             case "address":
                 errors.address =
-                    value.length < 5 ? "Address must be at least 5 characters" : "";
+                    value.length < 5 ? "Địa chỉ phải có ít nhất 5 ký tự" : "";
                 break;
             case "phone":
                 errors.phone = !/^\d{10,11}$/.test(value)
-                    ? "Phone number must be 10-11 digits"
+                    ? "Số điện thoại phải có 10-11 chữ số"
                     : "";
                 break;
             default:
@@ -115,32 +112,35 @@ const Checkout = () => {
     const validateForm = () => {
         const errors = {};
         if (formData.fullName.length < 2)
-            errors.fullName = "Full name must be at least 2 characters";
+            errors.fullName = "Họ tên phải có ít nhất 2 ký tự";
         if (formData.address.length < 5)
-            errors.address = "Address must be at least 5 characters";
+            errors.address = "Địa chỉ phải có ít nhất 5 ký tự";
         if (!/^\d{10,11}$/.test(formData.phone))
-            errors.phone = "Phone number must be 10-11 digits";
+            errors.phone = "Số điện thoại phải có 10-11 chữ số";
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
     const handleApplyPromo = () => {
-        if (formData.promoCode === "DISCOUNT10") {
-            setPromoDiscount(subtotal * 0.1);
+        const validVouchers = ["DISCOUNT10", "SAVE20"];
+        if (validVouchers.includes(formData.promoCode)) {
+            setPromoDiscount(
+                formData.promoCode === "DISCOUNT10" ? subtotal * 0.1 : subtotal * 0.2
+            );
             setToast({
                 show: true,
-                message: "Voucher applied successfully!",
+                message: "Áp dụng mã giảm giá thành công!",
                 type: "success"
             });
         } else {
             setPromoDiscount(0);
             setToast({
                 show: true,
-                message: "Invalid voucher code!",
+                message: "Mã giảm giá không hợp lệ!",
                 type: "error"
             });
         }
-        setTimeout(() => setToast({ show: false, message: "", type: "" }), 4000);
+        setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
     };
 
     const handleSubmitOrder = async (e) => {
@@ -148,10 +148,10 @@ const Checkout = () => {
         if (!validateForm()) {
             setToast({
                 show: true,
-                message: "Please fill in all required information!",
+                message: "Vui lòng điền đầy đủ thông tin bắt buộc!",
                 type: "error"
             });
-            setTimeout(() => setToast({ show: false, message: "", type: "" }), 4000);
+            setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
             return;
         }
 
@@ -164,11 +164,11 @@ const Checkout = () => {
                 promoDiscount
             };
             const response = await OrderService.create(orderData);
-            await clearCart(); // Gọi clearCart từ CartContext
-            setCartItems([]); // Cập nhật state cục bộ
+            await clearCart();
+            setCartItems([]);
             setToast({
                 show: true,
-                message: "Order placed successfully!",
+                message: "Đặt hàng thành công!",
                 type: "success"
             });
             setTimeout(() => {
@@ -176,15 +176,15 @@ const Checkout = () => {
                 navigate(PATHS.ORDER_CONFIRMATION, {
                     state: { total, formData, cartItems, orderId: response.orderId }
                 });
-            }, 4000);
+            }, 3000);
         } catch (error) {
-            console.error("Error placing order:", error);
+            console.error("Lỗi đặt hàng:", error);
             if (error.response?.status === 401) {
                 localStorage.removeItem("access_token");
                 navigate(PATHS.LOGIN);
                 setToast({
                     show: true,
-                    message: "Session expired. Please log in again.",
+                    message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
                     type: "error"
                 });
             } else {
@@ -192,36 +192,33 @@ const Checkout = () => {
                     show: true,
                     message:
                         error.response?.data?.message ||
-                        "Order placement failed. Please try again.",
+                        "Đặt hàng thất bại. Vui lòng thử lại.",
                     type: "error"
                 });
             }
-            setTimeout(() => setToast({ show: false, message: "", type: "" }), 4000);
+            setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const SkeletonLoader = () => (
-        <div className="row">
-            <div className="col-lg-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
                 {[...Array(3)].map((_, i) => (
-                    <div key={i} className="mb-3">
-                        <div
-                            className="skeleton"
-                            style={{ height: "40px", borderRadius: "8px" }}
-                        />
-                    </div>
+                    <div
+                        key={i}
+                        className="h-10 bg-gray-200 rounded-lg animate-pulse"
+                    ></div>
                 ))}
             </div>
-            <div className="col-lg-4">
-                <div className="summary-card">
+            <div className="lg:col-span-1">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                     {[...Array(4)].map((_, i) => (
                         <div
                             key={i}
-                            className="skeleton mb-2"
-                            style={{ height: "20px", borderRadius: "4px" }}
-                        />
+                            className="h-5 bg-gray-200 rounded w-full mb-2 animate-pulse"
+                        ></div>
                     ))}
                 </div>
             </div>
@@ -229,343 +226,179 @@ const Checkout = () => {
     );
 
     return (
-        <>
-            <style>
-                {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-          .checkout-container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin: 2rem auto;
-            max-width: 1200px;
-            font-family: 'Inter', sans-serif;
-          }
-          .checkout-header {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-            letter-spacing: -0.02em;
-          }
-          .progress-steps {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2.5rem;
-            position: relative;
-          }
-          .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-          }
-          .progress-step-circle {
-            width: 2.75rem;
-            height: 2.75rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 1.25rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          }
-          .progress-step-circle.active {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: #ffffff;
-          }
-          .progress-step-circle.inactive {
-            background: #f1f3f5;
-            color: #6b7280;
-          }
-          .progress-step-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #6b7280;
-            margin-top: 0.75rem;
-            text-transform: uppercase;
-          }
-          .progress-connector {
-            position: absolute;
-            top: 1.375rem;
-            height: 0.3rem;
-            background: #f1f3f5;
-            z-index: 0;
-          }
-          .progress-connector-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-            transition: width 0.4s ease;
-            border-radius: 2px;
-          }
-          .summary-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            position: sticky;
-            top: 2rem;
-            border: 1px solid #e5e7eb;
-          }
-          .summary-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 1.75rem;
-          }
-          .summary-total {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-          }
-          .place-order-btn {
-            background: linear-gradient(90deg, #2563eb, #1e40af);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 1rem 2rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
-            letter-spacing: 0.02em;
-          }
-          .place-order-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-          }
-          .place-order-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-          }
-          .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            color: #ffffff;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            animation: slideIn 0.4s ease-out;
-            font-weight: 500;
-          }
-          .toast.success {
-            background: #2ecc71;
-          }
-          .toast.error {
-            background: #dc3545;
-          }
-          .promo-input-group {
-            display: flex;
-            gap: 0.75rem;
-          }
-          .promo-btn {
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-          }
-          .promo-btn:hover {
-            background: linear-gradient(90deg, #27ae60, #219653);
-            transform: translateY(-1px);
-          }
-          .form-label {
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
-          }
-          .form-control {
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem;
-            transition: all 0.2s ease;
-          }
-          .form-control:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-          }
-          .form-select {
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem;
-          }
-          .invalid-feedback {
-            font-size: 0.875rem;
-            color: #dc2626;
-          }
-          .skeleton {
-            background: #e9ecef;
-            border-radius: 0.25rem;
-            animation: pulse 0.5s infinite ease-in-out;
-          }
-          @keyframes pulse {
-            0% { background-color: #e9ecef; }
-            50% { background-color: #dee2e6; }
-            100% { background-color: #e9ecef; }
-          }
-          @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @media (max-width: 992px) {
-            .checkout-container {
-              padding: 1.5rem;
-            }
-            .summary-card {
-              position: static;
-              margin-top: 2rem;
-            }
-          }
-        `}
-            </style>
-            <div className="container checkout-container">
-                <h2 className="checkout-header" role="heading" aria-level="2">
-                    Checkout
+        <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-['Noto_Sans_JP'] antialiased">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
+                <h2
+                    className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 mb-6"
+                    role="heading"
+                    aria-level="2"
+                >
+                    Thanh toán
                 </h2>
 
-                <div className="progress-steps">
-                    <div
-                        className="progress-connector"
-                        style={{ left: "2.75rem", right: "2.75rem" }}
-                    >
-                        <div
-                            className="progress-connector-fill"
-                            style={{ width: "66%" }}
-                        ></div>
+                <div className="flex justify-between mb-8 relative">
+                    <div className="absolute top-5 left-10 right-10 h-1 bg-gray-200 rounded z-0">
+                        <div className="h-full bg-pink-600 w-2/3 rounded transition-all duration-300"></div>
                     </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle active">1</div>
-                        <span className="progress-step-label">Cart</span>
-                    </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle active">2</div>
-                        <span className="progress-step-label">Checkout</span>
-                    </div>
-                    <div className="progress-step">
-                        <div className="progress-step-circle inactive">3</div>
-                        <span className="progress-step-label">Complete</span>
-                    </div>
+                    {["Giỏ hàng", "Thanh toán", "Hoàn tất"].map((step, index) => (
+                        <div key={index} className="flex flex-col items-center z-10">
+                            <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-lg shadow-md transition-all duration-300 ${index <= 1
+                                    ? "bg-pink-600 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                                    }`}
+                            >
+                                {index + 1}
+                            </div>
+                            <span className="mt-2 text-sm font-medium text-gray-600">
+                                {step}
+                            </span>
+                        </div>
+                    ))}
                 </div>
 
                 {isLoading ? (
                     <SkeletonLoader />
                 ) : error ? (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
+                    <div
+                        className="bg-red-100 text-red-600 p-4 rounded-lg flex justify-between items-center mb-4"
+                        role="alert"
+                    >
+                        <span>{error}</span>
+                        <button
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                            onClick={() => setError(null)}
+                            aria-label="Thử lại"
+                        >
+                            Thử lại
+                        </button>
                     </div>
                 ) : cartItems.length === 0 ? (
-                    <div className="text-center py-5">
-                        <p className="text-muted mb-4 fs-5">Your cart is empty!</p>
+                    <div className="text-center py-10">
+                        <p className="text-gray-500 text-lg mb-4">
+                            Giỏ hàng của bạn đang trống!
+                        </p>
                         <button
-                            className="btn btn-primary btn-lg"
+                            className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition-colors"
                             onClick={() => navigate(PATHS.HOME)}
-                            aria-label="Continue shopping"
+                            aria-label="Tiếp tục mua sắm"
                         >
-                            Continue Shopping
+                            Tiếp tục mua sắm
                         </button>
                     </div>
                 ) : (
-                    <div className="row">
-                        <div className="col-lg-8">
-                            <h4 className="mb-4">Shipping Information</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                                Thông tin giao hàng
+                            </h4>
                             <form onSubmit={handleSubmitOrder}>
-                                <div className="mb-3">
-                                    <label htmlFor="fullName" className="form-label">
-                                        Full Name
+                                <div className="mb-4">
+                                    <label
+                                        htmlFor="fullName"
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Họ và tên
                                     </label>
                                     <input
                                         type="text"
-                                        className={`form-control ${formErrors.fullName ? "is-invalid" : ""
-                                            }`}
+                                        className={`w-full border ${formErrors.fullName ? "border-red-500" : "border-gray-200"
+                                            } rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-600`}
                                         id="fullName"
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleInputChange}
                                         required
+                                        aria-describedby={
+                                            formErrors.fullName ? "fullName-error" : undefined
+                                        }
                                     />
                                     {formErrors.fullName && (
-                                        <div className="invalid-feedback">
+                                        <p
+                                            id="fullName-error"
+                                            className="text-red-500 text-sm mt-1"
+                                        >
                                             {formErrors.fullName}
-                                        </div>
+                                        </p>
                                     )}
                                 </div>
-                                <div className="mb-3">
-                                    <label htmlFor="address" className="form-label">
-                                        Address
+                                <div className="mb-4">
+                                    <label
+                                        htmlFor="address"
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Địa chỉ
                                     </label>
                                     <input
                                         type="text"
-                                        className={`form-control ${formErrors.address ? "is-invalid" : ""
-                                            }`}
+                                        className={`w-full border ${formErrors.address ? "border-red-500" : "border-gray-200"
+                                            } rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-600`}
                                         id="address"
                                         name="address"
                                         value={formData.address}
                                         onChange={handleInputChange}
                                         required
+                                        aria-describedby={
+                                            formErrors.address ? "address-error" : undefined
+                                        }
                                     />
                                     {formErrors.address && (
-                                        <div className="invalid-feedback">{formErrors.address}</div>
+                                        <p id="address-error" className="text-red-500 text-sm mt-1">
+                                            {formErrors.address}
+                                        </p>
                                     )}
                                 </div>
-                                <div className="mb-3">
-                                    <label htmlFor="phone" className="form-label">
-                                        Phone Number
+                                <div className="mb-4">
+                                    <label
+                                        htmlFor="phone"
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Số điện thoại
                                     </label>
                                     <input
                                         type="tel"
-                                        className={`form-control ${formErrors.phone ? "is-invalid" : ""
-                                            }`}
+                                        className={`w-full border ${formErrors.phone ? "border-red-500" : "border-gray-200"
+                                            } rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-600`}
                                         id="phone"
                                         name="phone"
                                         value={formData.phone}
                                         onChange={handleInputChange}
                                         required
+                                        aria-describedby={
+                                            formErrors.phone ? "phone-error" : undefined
+                                        }
                                     />
                                     {formErrors.phone && (
-                                        <div className="invalid-feedback">{formErrors.phone}</div>
+                                        <p id="phone-error" className="text-red-500 text-sm mt-1">
+                                            {formErrors.phone}
+                                        </p>
                                     )}
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Payment Method</label>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Phương thức thanh toán
+                                    </label>
                                     <select
-                                        className="form-select"
+                                        className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-600"
                                         name="paymentMethod"
                                         value={formData.paymentMethod}
                                         onChange={handleInputChange}
                                     >
-                                        <option value="cod">Cash on Delivery</option>
-                                        <option value="card">Bank Card</option>
+                                        <option value="cod">Thanh toán khi nhận hàng</option>
+                                        <option value="card">Thẻ ngân hàng</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="promoCode" className="form-label">
-                                        Voucher Code
+                                    <label
+                                        htmlFor="promoCode"
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Mã giảm giá
                                     </label>
-                                    <div className="promo-input-group">
+                                    <div className="flex items-center gap-2">
                                         <input
                                             type="text"
-                                            className="form-control"
+                                            className="flex-1 border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-600"
                                             id="promoCode"
                                             name="promoCode"
                                             value={formData.promoCode}
@@ -573,62 +406,66 @@ const Checkout = () => {
                                         />
                                         <button
                                             type="button"
-                                            className="promo-btn"
+                                            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors"
                                             onClick={handleApplyPromo}
+                                            aria-label="Áp dụng mã giảm giá"
                                         >
-                                            Apply
+                                            Áp dụng
                                         </button>
                                     </div>
                                 </div>
                                 <button
                                     type="submit"
-                                    className="place-order-btn"
+                                    className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={isSubmitting || cartItems.length === 0}
-                                    aria-label="Place order"
+                                    aria-label="Đặt hàng"
+                                    aria-busy={isSubmitting}
                                 >
-                                    {isSubmitting ? "Processing..." : "Place Order"}
+                                    {isSubmitting ? "Đang xử lý..." : "Đặt hàng"}
                                 </button>
                             </form>
                         </div>
-                        <div className="col-lg-4">
-                            <div className="summary-card">
-                                <h4 className="summary-title">Order Summary</h4>
+                        <div className="lg:col-span-1">
+                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-4">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Tổng quan đơn hàng
+                                </h4>
                                 {cartItems.map((item) => (
                                     <div
                                         key={item.variant?.VariantID || Math.random()}
-                                        className="d-flex justify-content-between mb-2"
+                                        className="flex justify-between mb-2 text-sm"
                                     >
                                         <span>
-                                            {item.variant?.product?.ProductName || "Product"} x{" "}
+                                            {item.variant?.product?.ProductName || "Sản phẩm"} x{" "}
                                             {item.Quantity}
                                         </span>
                                         <span>
                                             {(
                                                 item.Quantity * (item.variant?.Price || 0)
-                                            ).toLocaleString("en-US")}{" "}
-                                            $
+                                            ).toLocaleString("vi-VN")}{" "}
+                                            ₫
                                         </span>
                                     </div>
                                 ))}
-                                <hr />
-                                <div className="summary-total">
-                                    <span>Subtotal:</span>
-                                    <span>{subtotal.toLocaleString("en-US")} $</span>
+                                <hr className="my-2" />
+                                <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                                    <span>Tạm tính:</span>
+                                    <span>{subtotal.toLocaleString("vi-VN")} ₫</span>
                                 </div>
-                                <div className="summary-total">
-                                    <span>Delivery Fee:</span>
-                                    <span>Free</span>
+                                <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                                    <span>Phí giao hàng:</span>
+                                    <span>Miễn phí</span>
                                 </div>
                                 {promoDiscount > 0 && (
-                                    <div className="summary-total">
-                                        <span>Discount ({formData.promoCode}):</span>
-                                        <span>-{promoDiscount.toLocaleString("en-US")} $</span>
+                                    <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                                        <span>Giảm giá ({formData.promoCode}):</span>
+                                        <span>-{promoDiscount.toLocaleString("vi-VN")} ₫</span>
                                     </div>
                                 )}
-                                <hr />
-                                <div className="summary-total">
-                                    <span>Total:</span>
-                                    <span>{total.toLocaleString("en-US")} $</span>
+                                <hr className="my-2" />
+                                <div className="flex justify-between text-base font-semibold text-gray-900">
+                                    <span>Tổng cộng:</span>
+                                    <span>{total.toLocaleString("vi-VN")} ₫</span>
                                 </div>
                             </div>
                         </div>
@@ -636,15 +473,17 @@ const Checkout = () => {
                 )}
                 {toast.show && (
                     <div
-                        className={`toast ${toast.type}`}
+                        className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-white animate-slide-in ${toast.type === "success" ? "bg-pink-600" : "bg-red-600"
+                            }`}
                         role="alert"
                         aria-live="assertive"
+                        aria-atomic="true"
                     >
                         <FaCheckCircle /> {toast.message}
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 
@@ -654,14 +493,27 @@ const OrderConfirmation = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     const { total, formData, cartItems, orderId } = state || {};
-    const currentDateTime = new Date().toLocaleString("en-US", {
+    const currentDateTime = new Date().toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh",
         dateStyle: "medium",
         timeStyle: "short"
     });
 
+    // Tạo dữ liệu cho mã QR
+    const qrCodeValue = useMemo(() => {
+        if (orderId && total && formData) {
+            return JSON.stringify({
+                orderId: orderId || "N/A",
+                amount: total,
+                currency: "VND",
+                customerName: formData.fullName,
+                timestamp: currentDateTime
+            });
+        }
+        return "";
+    }, [orderId, total, formData, currentDateTime]);
+
     useEffect(() => {
-        // Simulate loading time (2 seconds)
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2000);
@@ -670,18 +522,20 @@ const OrderConfirmation = () => {
 
     if (!total || !formData || !cartItems) {
         return (
-            <div className="container confirmation-container">
-                <div className="text-center py-5">
-                    <p className="text-muted fs-5">
-                        No order information available.{" "}
+            <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-['Noto_Sans_JP'] antialiased">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
+                    <div className="text-center py-10">
+                        <p className="text-gray-500 text-lg mb-4">
+                            Không có thông tin đơn hàng.
+                        </p>
                         <button
-                            className="btn-home"
+                            className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition-colors"
                             onClick={() => navigate(PATHS.HOME)}
-                            aria-label="Return to homepage"
+                            aria-label="Về trang chủ"
                         >
-                            Return to Homepage
+                            Về trang chủ
                         </button>
-                    </p>
+                    </div>
                 </div>
             </div>
         );
@@ -689,234 +543,121 @@ const OrderConfirmation = () => {
 
     if (isLoading) {
         return (
-            <div className="container confirmation-container">
-                <div className="text-center py-5">
-                    <p className="loading-text">Loading, please wait a moment...</p>
+            <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-['Noto_Sans_JP'] antialiased">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
+                    <div className="text-center py-10">
+                        <p className="text-gray-500 text-lg">
+                            Đang tải, vui lòng đợi trong giây lát...
+                        </p>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <>
-            <style>
-                {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 font-['Noto_Sans_JP'] antialiased">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-7xl">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 max-w-2xl mx-auto">
+                    <div className="text-center mb-6">
+                        <FaCheckCircle className="text-pink-600 text-4xl mb-4 mx-auto" />
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            Cảm ơn bạn đã đặt hàng!
+                        </h2>
+                        <p className="text-gray-600 mt-2">
+                            Đơn hàng của bạn đã được đặt thành công vào {currentDateTime}
+                        </p>
+                        <p className="text-gray-600">Mã đơn hàng: {orderId || "N/A"}</p>
+                    </div>
 
-          .confirmation-container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin: 2rem auto;
-            max-width: 600px;
-            font-family: 'Inter', sans-serif;
-            animation: fadeIn 0.5s ease-out;
-          }
-
-          .confirmation-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 1.5rem;
-          }
-
-          .success-icon {
-            color: #28a745;
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            animation: bounceIn 0.6s ease-out;
-          }
-
-          .confirmation-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin: 0;
-            letter-spacing: -0.02em;
-          }
-
-          .confirmation-subtitle {
-            font-size: 1rem;
-            font-weight: 500;
-            color: #6b7280;
-            margin: 0.5rem 0;
-          }
-
-          .confirmation-card {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-          }
-
-          .confirmation-card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 1rem;
-          }
-
-          .confirmation-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-          }
-
-          .confirmation-list-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            font-size: 0.95rem;
-            color: #374151;
-            border-bottom: 1px solid #f1f3f5;
-          }
-
-          .confirmation-list-item:last-child {
-            border-bottom: none;
-          }
-
-          .confirmation-list-item span:first-child {
-            font-weight: 500;
-          }
-
-          .confirmation-list-item span:last-child {
-            font-weight: 400;
-          }
-
-          .btn-home {
-            background: #007bff;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
-            cursor: pointer;
-          }
-
-          .btn-home:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-
-          .loading-text {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #6b7280;
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-
-          @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); }
-          }
-
-          @media (max-width: 768px) {
-            .confirmation-container {
-              padding: 1rem;
-              margin: 1rem;
-            }
-
-            .confirmation-title {
-              font-size: 1.5rem;
-            }
-
-            .confirmation-subtitle {
-              font-size: 0.9rem;
-            }
-
-            .confirmation-card-title {
-              font-size: 1.1rem;
-            }
-          }
-        `}
-            </style>
-            <div className="container confirmation-container">
-                <div className="confirmation-header">
-                    <FaCheckCircle className="success-icon" />
-                    <h2 className="confirmation-title">Thank you for your order!</h2>
-                    <p className="confirmation-subtitle">
-                        Your order was successfully placed on {currentDateTime}
-                    </p>
-                    <p className="confirmation-subtitle">Order ID: {orderId || "N/A"}</p>
-                </div>
-
-                <div className="confirmation-card">
-                    <h4 className="confirmation-card-title">Order Details</h4>
-                    <ul className="confirmation-list">
-                        <li className="confirmation-list-item">
-                            <span>Full Name:</span>
-                            <span>{formData.fullName}</span>
-                        </li>
-                        <li className="confirmation-list-item">
-                            <span>Address:</span>
-                            <span>{formData.address}</span>
-                        </li>
-                        <li className="confirmation-list-item">
-                            <span>Phone Number:</span>
-                            <span>{formData.phone}</span>
-                        </li>
-                        <li className="confirmation-list-item">
-                            <span>Payment Method:</span>
-                            <span>
-                                {formData.paymentMethod === "cod"
-                                    ? "Cash on Delivery"
-                                    : "Bank Card"}
-                            </span>
-                        </li>
-                        <li className="confirmation-list-item">
-                            <span>Total:</span>
-                            <span>{total.toLocaleString("en-US")} $</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div className="confirmation-card">
-                    <h4 className="confirmation-card-title">Purchased Products</h4>
-                    <ul className="confirmation-list">
-                        {cartItems.map((item) => (
-                            <li
-                                key={item.variant?.VariantID || Math.random()}
-                                className="confirmation-list-item"
-                            >
+                    <div className="mb-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                            Chi tiết đơn hàng
+                        </h4>
+                        <ul className="divide-y divide-gray-100">
+                            <li className="flex justify-between py-2">
+                                <span className="font-medium">Họ và tên:</span>
+                                <span>{formData.fullName}</span>
+                            </li>
+                            <li className="flex justify-between py-2">
+                                <span className="font-medium">Địa chỉ:</span>
+                                <span>{formData.address}</span>
+                            </li>
+                            <li className="flex justify-between py-2">
+                                <span className="font-medium">Số điện thoại:</span>
+                                <span>{formData.phone}</span>
+                            </li>
+                            <li className="flex justify-between py-2">
+                                <span className="font-medium">Phương thức thanh toán:</span>
                                 <span>
-                                    {item.variant?.product?.ProductName || "Product"} x{" "}
-                                    {item.Quantity}
-                                </span>
-                                <span>
-                                    {(item.Quantity * (item.variant?.Price || 0)).toLocaleString(
-                                        "en-US"
-                                    )}{" "}
-                                    $
+                                    {formData.paymentMethod === "cod"
+                                        ? "Thanh toán khi nhận hàng"
+                                        : "Thẻ ngân hàng"}
                                 </span>
                             </li>
-                        ))}
-                    </ul>
-                </div>
+                            <li className="flex justify-between py-2">
+                                <span className="font-medium">Tổng cộng:</span>
+                                <span>{total.toLocaleString("vi-VN")} ₫</span>
+                            </li>
+                        </ul>
+                    </div>
 
-                <div className="text-center">
-                    <button
-                        className="btn-home"
-                        onClick={() => navigate(PATHS.HOME)}
-                        aria-label="Return to homepage"
-                    >
-                        Return to Homepage
-                    </button>
+                    <div className="mb-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                            Mã QR đơn hàng
+                        </h4>
+                        <div className="flex justify-center">
+                            <div style={{ background: "white", padding: "16px" }}>
+                                <QRCode
+                                    value={qrCodeValue}
+                                    size={200}
+                                    bgColor="#FFFFFF"
+                                    fgColor="#000000"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-gray-600 text-sm mt-2 text-center">
+                            Quét mã QR để xem chi tiết đơn hàng hoặc xác nhận thanh toán.
+                        </p>
+                    </div>
+
+                    <div className="mb-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                            Sản phẩm đã mua
+                        </h4>
+                        <ul className="divide-y divide-gray-100">
+                            {cartItems.map((item) => (
+                                <li
+                                    key={item.variant?.VariantID || Math.random()}
+                                    className="flex justify-between py-2"
+                                >
+                                    <span>
+                                        {item.variant?.product?.ProductName || "Sản phẩm"} x{" "}
+                                        {item.Quantity}
+                                    </span>
+                                    <span>
+                                        {(
+                                            item.Quantity * (item.variant?.Price || 0)
+                                        ).toLocaleString("vi-VN")}{" "}
+                                        ₫
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="text-center">
+                        <button
+                            className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition-colors"
+                            onClick={() => navigate(PATHS.HOME)}
+                            aria-label="Về trang chủ"
+                        >
+                            Về trang chủ
+                        </button>
+                    </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

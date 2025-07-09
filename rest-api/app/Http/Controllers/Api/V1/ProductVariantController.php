@@ -44,7 +44,6 @@ class ProductVariantController extends Controller
             'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        // Check quyền seller
         if ($user->RoleID !== 1) {
             $productOwner = Product::where('ProductID', $validated['ProductID'])
                 ->where('SellerID', $user->UserID)
@@ -71,9 +70,13 @@ class ProductVariantController extends Controller
         $product = Product::find($id);
         $user = Auth::user();
 
-        if (!$product) return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
-        if ($user->RoleID !== 1 && $product->SellerID !== $user->UserID)
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        if ($user->RoleID !== 1 && $product->SellerID !== $user->UserID) {
             return response()->json(['message' => 'Không có quyền sửa'], 403);
+        }
 
         $validated = $request->validate([
             'ProductName' => 'sometimes|string|max:200',
@@ -87,7 +90,9 @@ class ProductVariantController extends Controller
         if ($request->hasFile('Thumbnail')) {
             if ($product->ThumbnailURL) {
                 $oldPath = public_path(parse_url($product->ThumbnailURL, PHP_URL_PATH));
-                if (File::exists($oldPath)) File::delete($oldPath);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
             }
 
             $image = $request->file('Thumbnail');
@@ -98,7 +103,6 @@ class ProductVariantController extends Controller
 
         $product->update($validated);
 
-        // ✅ Xử lý biến thể mới
         foreach ($request->input('variants', []) as $index => $variantData) {
             $request->validate([
                 "variants.$index.SizeID" => 'nullable|exists:Size,SizeID',
@@ -126,24 +130,35 @@ class ProductVariantController extends Controller
             $variant->save();
         }
 
-
         return response()->json($product->load(['variants']));
     }
+
     public function getTotalStock(Request $request)
     {
         $productId = $request->query('ProductID');
 
-        $query = ProductVariant::query();
-
-        if ($productId) {
-            $query->where('ProductID', $productId);
+        if (!$productId) {
+            return response()->json(['message' => 'Thiếu ProductID'], 400);
         }
 
-        $totalStock = $query->sum('StockQuantity');
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        // Tính tổng từ biến thể
+        $totalStock = ProductVariant::where('ProductID', $productId)->sum('StockQuantity');
+
+        // Kiểm tra có biến thể thật không
+        $hasVariants = ProductVariant::where('ProductID', $productId)->exists();
+
+        if (!$hasVariants && $product->StockQuantity !== null) {
+            $totalStock = $product->StockQuantity;
+        }
 
         return response()->json([
-            'ProductID' => $productId,
-            'TotalStock' => $totalStock
+            'ProductID' => (int) $productId,
+            'TotalStock' => (int) $totalStock,
         ]);
     }
 

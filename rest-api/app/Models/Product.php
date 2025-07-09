@@ -17,9 +17,11 @@ class Product extends Model
         'CategoryID',
         'ThumbnailURL',
         'Price',
+        'StockQuantity',
         'SellerID',
         'Status',
     ];
+
 
     public function category()
     {

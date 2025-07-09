@@ -55,8 +55,10 @@ class ProductController extends Controller
             'Gender' => 'required|in:Male,Female,Unisex',
             'CategoryID' => 'required|exists:ProductCategory,CategoryID',
             'Price' => 'nullable|numeric|min:0',
+            'StockQuantity' => 'nullable|integer|min:0',
             'Thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'SellerID' => 'nullable|exists:Users,UserID',
+            'variants' => 'nullable|array',
         ]);
 
         $sellerID = $user->RoleID === 1
@@ -83,33 +85,48 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
-        // ✅ Xử lý biến thể nếu có
-        foreach ($request->input('variants', []) as $index => $variantData) {
-            $variant = [
-                'ProductID' => $product->ProductID,
-                'SizeID' => $request->input("variants.$index.SizeID"),
-                'ColorID' => $request->input("variants.$index.ColorID"),
-                'Price' => $request->input("variants.$index.Price"),
-                'StockQuantity' => $request->input("variants.$index.StockQuantity"),
-            ];
+        // ✅ Nếu có biến thể thì tạo biến thể
+        $variants = $request->input('variants', []);
 
-            // ✅ Xử lý ảnh biến thể
-            if ($request->hasFile("variants.$index.Image")) {
-                $file = $request->file("variants.$index.Image");
-                $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('images/productv2'), $filename);
-                $variant['ImageURL'] = url('images/productv2/' . $filename);
+        if (!empty($variants)) {
+            foreach ($variants as $index => $variantData) {
+                $variantValidated = $request->validate([
+                    "variants.$index.SizeID" => 'nullable|exists:Size,SizeID',
+                    "variants.$index.ColorID" => 'nullable|exists:Color,ColorID',
+                    "variants.$index.Price" => 'required|numeric|min:0',
+                    "variants.$index.StockQuantity" => 'required|integer|min:0',
+                    "variants.$index.Image" => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                ]);
+
+                $variant = [
+                    'ProductID' => $product->ProductID,
+                    'SizeID' => $variantData['SizeID'] ?? null,
+                    'ColorID' => $variantData['ColorID'] ?? null,
+                    'Price' => $variantData['Price'],
+                    'StockQuantity' => $variantData['StockQuantity'],
+                ];
+
+                if ($request->hasFile("variants.$index.Image")) {
+                    $file = $request->file("variants.$index.Image");
+                    $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $file->move(public_path('images/productv2'), $filename);
+                    $variant['ImageURL'] = url('images/productv2/' . $filename);
+                }
+
+                ProductVariant::create($variant);
             }
-
-            ProductVariant::create($variant);
+        } elseif (!$request->filled('Price') || !$request->filled('StockQuantity')) {
+            // ❌ Không có biến thể và thiếu Price/StockQuantity
+            return response()->json(['message' => 'Cần nhập Price và StockQuantity nếu không có biến thể'], 422);
         }
 
-        return response()->json($product->load(['variants']), 201);
+        return response()->json($product->load('variants'), 201);
     }
+
 
     public function update(Request $request, $id)
     {
-        $product = Product::find($id);
+        $product = Product::with('variants')->find($id);
         $user = Auth::user();
 
         if (!$product) {
@@ -128,8 +145,10 @@ class ProductController extends Controller
             'CategoryID' => 'exists:ProductCategory,CategoryID',
             'Price' => 'nullable|numeric|min:0',
             'Thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'SellerID' => 'nullable|exists:Users,UserID', // ✅ Cho phép cập nhật SellerID nếu là admin
         ]);
 
+        // ✅ Cập nhật hình ảnh
         if ($request->hasFile('Thumbnail')) {
             if ($product->ThumbnailURL) {
                 $oldPath = public_path(parse_url($product->ThumbnailURL, PHP_URL_PATH));
@@ -144,9 +163,50 @@ class ProductController extends Controller
             $validated['ThumbnailURL'] = url('images/product/' . $filename);
         }
 
+        // ✅ Chỉ admin được cập nhật SellerID
+        if ($user->RoleID === 1 && $request->filled('SellerID')) {
+            $validated['SellerID'] = $request->input('SellerID');
+        }
+
         $product->update($validated);
-        return response()->json($product);
+
+        // ✅ Xử lý cập nhật biến thể (xoá cũ -> thêm mới)
+        if ($request->has('variants')) {
+            // Xoá toàn bộ biến thể cũ
+            foreach ($product->variants as $oldVariant) {
+                if ($oldVariant->ImageURL) {
+                    $oldImagePath = public_path(parse_url($oldVariant->ImageURL, PHP_URL_PATH));
+                    if (File::exists($oldImagePath)) {
+                        File::delete($oldImagePath);
+                    }
+                }
+                $oldVariant->delete();
+            }
+
+            // Tạo lại biến thể mới
+            foreach ($request->input('variants', []) as $index => $variantData) {
+                $variant = [
+                    'ProductID' => $product->ProductID,
+                    'SizeID' => $request->input("variants.$index.SizeID"),
+                    'ColorID' => $request->input("variants.$index.ColorID"),
+                    'Price' => $request->input("variants.$index.Price"),
+                    'StockQuantity' => $request->input("variants.$index.StockQuantity"),
+                ];
+
+                if ($request->hasFile("variants.$index.Image")) {
+                    $file = $request->file("variants.$index.Image");
+                    $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $file->move(public_path('images/productv2'), $filename);
+                    $variant['ImageURL'] = url('images/productv2/' . $filename);
+                }
+
+                ProductVariant::create($variant);
+            }
+        }
+
+        return response()->json($product->load('variants'));
     }
+
 
     public function destroy($id)
     {

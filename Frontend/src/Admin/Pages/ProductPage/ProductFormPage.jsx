@@ -7,9 +7,10 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 
 import CategoryService from '../../../services/categoryService';
-import ProductService from '../../../services/ProductService';
+
 import SellerService from '../../../services/SellerService';
 import ProductVariantsForm from './ProductVariantsForm';
+import ProductService from '../../../services/productService';
 
 const { Title } = Typography;
 const { Option } = Select;

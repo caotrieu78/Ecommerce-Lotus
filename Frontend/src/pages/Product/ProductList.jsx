@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import ProductService from "../../services/ProductService";
+
 import ProductCard from "../../components/ProductCard";
 import QuickViewModal from "../../components/QuickViewModal";
+import ProductService from "../../services/productService";
+
 
 const CATEGORIES = [
     "Thực phẩm chế biến",

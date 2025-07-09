@@ -14,10 +14,11 @@ import {
     LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// Mock CartContext for demo
-const CartContext = React.createContext({ cartItemCount: 3 });
-
+import { motion } from "framer-motion";
+import CartPanel from "./CartPanel";
+import { CartContext } from "../context/CartContext";
+import { PATHS } from "../constants/paths";
+import { Link } from "react-router-dom";
 const categories = [
     "Thực phẩm",
     "Mẹ và Bé",
@@ -34,6 +35,7 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
     const menuRef = useRef();
     const userMenuRef = useRef();
@@ -79,9 +81,9 @@ const Header = () => {
             <div className="bg-pink-100 shadow-sm">
                 <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
                     {/* Logo */}
-                    <div className="flex items-center flex-shrink-0">
+                    <Link to="/" className="flex items-center flex-shrink-0">
                         <img src="/images/logo.png" alt="Logo" className="h-12 mr-2" />
-                    </div>
+                    </Link>
 
                     {/* Search */}
                     <div className="hidden md:flex flex-1 mx-4 lg:mx-10 max-w-xl">
@@ -97,7 +99,7 @@ const Header = () => {
                         </div>
                     </div>
 
-                    {/* Right side icons */}
+                    {/* Right Side */}
                     <div className="flex items-center gap-4">
                         {/* User Dropdown */}
                         <div className="relative" ref={userMenuRef}>
@@ -115,19 +117,10 @@ const Header = () => {
                                         <UserCircle className="w-5 h-5" />
                                     )}
                                 </div>
-                                {/* Show text only on desktop */}
-                                {!user && (
-                                    <span className="text-sm text-gray-800 font-medium hidden sm:inline">
-                                        Đăng nhập / Đăng ký
-                                    </span>
-                                )}
-                                {user && (
-                                    <span className="text-sm text-gray-800 font-medium hidden sm:inline">
-                                        {user.FullName || user.Username}
-                                    </span>
-                                )}
+                                <span className="text-sm text-gray-800 font-medium hidden sm:inline">
+                                    {user ? (user.FullName || user.Username) : "Đăng nhập / Đăng ký"}
+                                </span>
                             </div>
-
 
                             {user && isUserMenuOpen && (
                                 <div className="user-dropdown">
@@ -135,15 +128,15 @@ const Header = () => {
                                         <p className="user-name">{user.FullName || user.Username}</p>
                                     </div>
                                     <ul className="user-dropdown-list">
-                                        <li onClick={() => goTo("/account")}>
+                                        <li onClick={() => goTo(PATHS.ACCOUNT)}>
                                             <UserCircle className="icon" />
                                             <span>Thông tin tài khoản</span>
                                         </li>
-                                        <li onClick={() => goTo("/orders")}>
+                                        <li onClick={() => goTo(PATHS.MY_ORDERS)}>
                                             <Truck className="icon" />
                                             <span>Đơn hàng của tôi</span>
                                         </li>
-                                        <li onClick={() => goTo("/favorites")}>
+                                        <li onClick={() => goTo(PATHS.FAVORITES)}>
                                             <Heart className="icon" />
                                             <span>Sản phẩm yêu thích</span>
                                         </li>
@@ -154,10 +147,9 @@ const Header = () => {
                                     </ul>
                                 </div>
                             )}
-
                         </div>
 
-                        {/* Yêu thích - desktop */}
+                        {/* Favorites */}
                         <button
                             onClick={() => navigate("/favorites")}
                             className="hidden lg:flex items-center gap-2 text-gray-800 hover:text-pink-600 transition"
@@ -166,10 +158,11 @@ const Header = () => {
                             <span className="text-sm font-medium hidden md:inline">Yêu thích</span>
                         </button>
 
-                        {/* Cart Icon */}
-                        <div
-                            onClick={() => navigate("/shopping-cart")}
+                        {/* Cart Icon with animation */}
+                        <motion.div
+                            onClick={() => setIsCartOpen(true)}
                             className="relative cursor-pointer text-gray-800 hover:text-pink-600 transition"
+                            whileTap={{ x: [-10, 0], transition: { duration: 0.3 } }}
                         >
                             <ShoppingBag className="w-6 h-6" />
                             {cartItemCount > 0 && (
@@ -177,9 +170,9 @@ const Header = () => {
                                     {cartItemCount}
                                 </span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        {/* Mobile Menu Button */}
+                        {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="lg:hidden p-2 text-gray-800 hover:text-pink-700 transition"
@@ -207,18 +200,16 @@ const Header = () => {
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
                         <div className="px-4 py-4 space-y-4">
-                            <div className="space-y-2">
-                                <button
-                                    onClick={() => {
-                                        navigate("/favorites");
-                                        setIsMobileMenuOpen(false);
-                                    }}
-                                    className="w-full flex items-center gap-3 p-3 text-gray-700 hover:bg-pink-50 rounded-lg transition"
-                                >
-                                    <Heart className="w-5 h-5 text-pink-600" />
-                                    <span>Sản phẩm yêu thích</span>
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => {
+                                    navigate("/favorites");
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full flex items-center gap-3 p-3 text-gray-700 hover:bg-pink-50 rounded-lg transition"
+                            >
+                                <Heart className="w-5 h-5 text-pink-600" />
+                                <span>Sản phẩm yêu thích</span>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -275,7 +266,11 @@ const Header = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Cart Panel */}
+            <CartPanel isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </header>
     );
-}
+};
+
 export default Header;

@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1696939200001,
+        "productId": 1,
+        "text": "Áo kimono này mặc lên sang trọng lắm, vải mềm và mát, giao hàng nhanh nữa!",
+        "user": "Ngọc Hân",
+        "timestamp": "09/07/2025 10:00 AM"
+    },
+    {
+        "id": 1696939200002,
+        "productId": 2,
+        "text": "Mỹ phẩm Sakura dùng thích ghê, da mịn hẳn sau vài ngày. Shop đóng gói cẩn thận!",
+        "user": "Minh Anh",
+        "timestamp": "08/07/2025 03:30 PM"
+    },
+    {
+        "id": 1696939200003,
+        "productId": 3,
+        "text": "Trà Matcha thơm, đúng chuẩn Nhật, pha uống mỗi sáng thấy sảng khoái. Bao bì đẹp!",
+        "user": "Hoàng Nam",
+        "timestamp": "07/07/2025 09:15 AM"
+    },
+    {
+        "id": 1696939200004,
+        "productId": 1,
+        "text": "Mua kimono lần thứ 2, chất lượng vẫn đỉnh, shop tư vấn nhiệt tình lắm!",
+        "user": "Thảo Linh",
+        "timestamp": "06/07/2025 06:45 PM"
+    },
+    {
+        "id": 1696939200005,
+        "productId": 2,
+        "text": "Mỹ phẩm đẹp da, nhưng mình mong shop có thêm mẫu thử nhỏ. Rất hài lòng!",
+        "user": "Quốc Huy",
+        "timestamp": "05/07/2025 11:20 AM"
+    }
+]

@@ -58,6 +58,12 @@ import ProductGroupsPage from "./Admin/Pages/ProductPage/ProductGroupsPage";
 import UserDetailPage from "./Admin/Pages/UserPage/UserDetailPage";
 import PromotionPage from "./Admin/Pages/Promotion/PromotionPage";
 import ReportAnalyticsPage from "./Admin/Pages/ReportPage/ReportAnalyticsPage";
+import AccountInfo from "./pages/Account/AccountInfo";
+import MyOrders from "./pages/Account/MyOrders";
+import Favorites from "./pages/Account/Favorites";
+import BrandPage from "./pages/BrandPage";
+import BrandDashboard from "./Admin/Pages/BrandPage/BrandDashboard";
+
 
 function App() {
   return (
@@ -73,7 +79,11 @@ function App() {
           <Route path={PATHS.CART} element={<Cart />} />
           <Route path={PATHS.SHOP} element={<Shop />} />
           <Route path={PATHS.CHECKOUT} element={<Checkout />} />
+          <Route path="/brands/id/:id" element={<BrandPage />} />
           <Route path={PATHS.ORDER_CONFIRMATION} element={<OrderConfirmation />} />
+          <Route path={PATHS.ACCOUNT} element={<AccountInfo />} />
+          <Route path={PATHS.MY_ORDERS} element={<MyOrders />} />
+          <Route path={PATHS.FAVORITES} element={<Favorites />} />
           <Route
             path={PATHS.LOGIN}
             element={
@@ -125,6 +135,7 @@ function App() {
           <Route path={PATHS.SHIPPING_HANDOVER} element={<HandoverRecord />} />
           <Route path={PATHS.SHIPPING_RETURN} element={<ReturnRecord />} />
           <Route path={PATHS.PROFILE_DASHBOARD} element={<ProfileDashboard />} />
+          <Route path={PATHS.BRAND_DASHBOARD} element={<BrandDashboard />} />
           <Route path={PATHS.PROMOTION_DASHBOARD} element={<PromotionPage />} />
         </Route>
         {/*  Seller layout (protected) */}

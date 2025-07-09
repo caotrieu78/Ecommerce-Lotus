@@ -8,7 +8,6 @@ import {
     Collapse,
     Box,
     Typography,
-    Divider,
     IconButton,
     Tooltip,
 } from "@mui/material";
@@ -18,9 +17,7 @@ import {
     FaClipboardList,
     FaChevronDown,
     FaChevronUp,
-    FaList,
     FaBox,
-    FaThLarge,
     FaUsers,
     FaStore,
     FaComments,
@@ -36,7 +33,7 @@ import { PATHS } from "../../constants/paths";
 const drawerWidth = 240;
 const collapsedWidth = 80;
 
-const Sidebar = ({ open, onToggle }) => {
+const Sidebar = ({ open }) => {
     const location = useLocation();
     const path = location.pathname;
     const [openMenu, setOpenMenu] = useState(null);
@@ -66,33 +63,12 @@ const Sidebar = ({ open, onToggle }) => {
         paddingTop: "12px",
         paddingBottom: "12px",
         fontWeight: active ? 600 : 400,
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "all 0.3s",
         position: "relative",
-        overflow: "hidden",
         zIndex: 1,
-        "&:before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: active
-                ? "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)"
-                : "transparent",
-            borderRadius: "12px",
-            transition: "all 0.3s ease",
-            zIndex: -1,
-        },
         "&:hover": {
-            backgroundColor: active ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 0.15)",
+            backgroundColor: "rgba(255, 255, 255, 0.15)",
             transform: "translateX(4px)",
-            boxShadow: active
-                ? "0 8px 25px rgba(196, 3, 128, 0.25)"
-                : "0 4px 15px rgba(196, 3, 128, 0.15)",
-        },
-        "&:active": {
-            transform: "translateX(2px)",
         },
     });
 
@@ -101,16 +77,12 @@ const Sidebar = ({ open, onToggle }) => {
         color: active ? "#fff" : "rgba(255, 255, 255, 0.85)",
         borderRadius: "8px",
         margin: "2px 16px 2px 32px",
-        paddingLeft: "20px",
-        paddingRight: "16px",
-        paddingTop: "8px",
-        paddingBottom: "8px",
+        padding: "8px 16px",
         fontWeight: active ? 500 : 400,
         fontSize: "0.875rem",
-        transition: "all 0.3s ease",
+        transition: "all 0.3s",
         "&:hover": {
             backgroundColor: "rgba(255, 255, 255, 0.15)",
-            color: "#fff",
             transform: "translateX(4px)",
         },
     });
@@ -119,7 +91,6 @@ const Sidebar = ({ open, onToggle }) => {
         color: "#fff",
         minWidth: collapsed ? "auto" : "40px",
         fontSize: "1.2rem",
-        transition: "all 0.3s ease",
         opacity: active ? 1 : 0.8,
     });
 
@@ -173,6 +144,16 @@ const Sidebar = ({ open, onToggle }) => {
                 { label: "Tồn kho", path: PATHS.PRODUCT_INVENTORY },
             ],
         },
+
+        // ✅ Nhãn hàng
+        {
+            id: "brands",
+            label: "Nhãn hàng",
+            icon: <FaStore />,
+            path: PATHS.BRAND_DASHBOARD,
+            exact: true,
+        },
+
         {
             id: "customers",
             label: "Khách hàng",
@@ -205,7 +186,7 @@ const Sidebar = ({ open, onToggle }) => {
             return path === item.path;
         }
         if (Array.isArray(item.checkPath)) {
-            return item.checkPath.some(p => path.startsWith(p));
+            return item.checkPath.some((p) => path.startsWith(p));
         }
         return path.startsWith(item.checkPath);
     };
@@ -224,19 +205,8 @@ const Sidebar = ({ open, onToggle }) => {
                     color: "#fff",
                     borderRight: 0,
                     boxShadow: "0 4px 20px rgba(196, 3, 128, 0.3)",
-                    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transition: "width 0.3s",
                     overflowX: "hidden",
-                    "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: "linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)",
-                        pointerEvents: "none",
-                        zIndex: 0,
-                    },
                 },
             }}
         >
@@ -249,75 +219,40 @@ const Sidebar = ({ open, onToggle }) => {
                     padding: collapsed ? "16px 8px" : "20px 24px",
                     borderBottom: "1px solid rgba(255,255,255,0.2)",
                     background: "rgba(255,255,255,0.1)",
-                    backdropFilter: "blur(20px)",
-                    position: "relative",
-                    zIndex: 1,
                 }}
             >
-                {!collapsed && (
+                {!collapsed ? (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <img
-                            src="/images/lotus-logo.png"
-                            alt="Lotus Logo"
-                            style={{ height: 32, width: 32 }}
-                        />
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                fontWeight: 700,
-                                fontSize: "1.1rem",
-                                background: "linear-gradient(135deg, #fff 0%, #f8f9fa 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                backgroundClip: "text",
-                            }}
-                        >
+                        <img src="/images/lotus-logo.png" alt="Lotus Logo" style={{ height: 32, width: 32 }} />
+                        <Typography variant="h6" sx={{
+                            fontWeight: 700,
+                            fontSize: "1.1rem",
+                            background: "linear-gradient(135deg, #fff 0%, #f8f9fa 100%)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                        }}>
                             Lotus Admin
                         </Typography>
                     </Box>
-                )}
-
-                {collapsed && (
-                    <img
-                        src="/images/lotus-logo.png"
-                        alt="Lotus Logo"
-                        style={{ height: 28, width: 28 }}
-                    />
+                ) : (
+                    <img src="/images/lotus-logo.png" alt="Lotus Logo" style={{ height: 28, width: 28 }} />
                 )}
 
                 {!collapsed && (
                     <Tooltip title="Thu gọn sidebar" arrow>
-                        <IconButton
-                            onClick={toggleCollapse}
-                            sx={{
-                                color: "rgba(255,255,255,0.8)",
-                                padding: "4px",
-                                "&:hover": {
-                                    backgroundColor: "rgba(255,255,255,0.1)",
-                                    color: "#fff",
-                                },
-                            }}
-                        >
+                        <IconButton onClick={toggleCollapse} sx={{ color: "#fff" }}>
                             <FaAngleLeft />
                         </IconButton>
                     </Tooltip>
                 )}
             </Box>
 
-            {/* Expand Button for Collapsed State */}
+            {/* Expand when collapsed */}
             {collapsed && (
                 <Box sx={{ padding: "8px", textAlign: "center" }}>
                     <Tooltip title="Mở rộng sidebar" arrow placement="right">
-                        <IconButton
-                            onClick={toggleCollapse}
-                            sx={{
-                                color: "rgba(255,255,255,0.8)",
-                                "&:hover": {
-                                    backgroundColor: "rgba(255,255,255,0.1)",
-                                    color: "#fff",
-                                },
-                            }}
-                        >
+                        <IconButton onClick={toggleCollapse} sx={{ color: "#fff" }}>
                             <FaAngleRight />
                         </IconButton>
                     </Tooltip>
@@ -325,46 +260,17 @@ const Sidebar = ({ open, onToggle }) => {
             )}
 
             {/* Navigation */}
-            <List
-                sx={{
-                    padding: "16px 0",
-                    flex: 1,
-                    overflowY: "auto",
-                    "&::-webkit-scrollbar": {
-                        width: "6px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                        background: "transparent",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                        backgroundColor: "rgba(255,255,255,0.4)",
-                        borderRadius: "6px",
-                    },
-                    "&::-webkit-scrollbar-thumb:hover": {
-                        backgroundColor: "rgba(255,255,255,0.6)",
-                    },
-                    scrollbarWidth: "thin",
-                    scrollbarColor: "rgba(255,255,255,0.4) transparent",
-                }}
-            >
-
+            <List>
                 {menuItems.map((item) => (
                     <React.Fragment key={item.id}>
                         {item.hasSubmenu ? (
                             <>
-                                <Tooltip
-                                    title={collapsed ? item.label : ""}
-                                    arrow
-                                    placement="right"
-                                    disableHoverListener={!collapsed}
-                                >
+                                <Tooltip title={collapsed ? item.label : ""} arrow placement="right" disableHoverListener={!collapsed}>
                                     <ListItemButton
                                         onClick={() => toggleMenu(item.id)}
                                         sx={mainLinkStyle(checkIsActive(item))}
                                     >
-                                        <ListItemIcon sx={iconStyle(checkIsActive(item))}>
-                                            {item.icon}
-                                        </ListItemIcon>
+                                        <ListItemIcon sx={iconStyle(checkIsActive(item))}>{item.icon}</ListItemIcon>
                                         {!collapsed && (
                                             <>
                                                 <ListItemText
@@ -374,11 +280,7 @@ const Sidebar = ({ open, onToggle }) => {
                                                         fontWeight: checkIsActive(item) ? 600 : 400,
                                                     }}
                                                 />
-                                                {openMenu === item.id ? (
-                                                    <FaChevronUp size={12} />
-                                                ) : (
-                                                    <FaChevronDown size={12} />
-                                                )}
+                                                {openMenu === item.id ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
                                             </>
                                         )}
                                     </ListItemButton>
@@ -387,20 +289,9 @@ const Sidebar = ({ open, onToggle }) => {
                                     <Collapse in={openMenu === item.id} timeout="auto" unmountOnExit>
                                         <List component="div" disablePadding>
                                             {item.submenu.map((subItem) => (
-                                                <NavLink
-                                                    key={subItem.path}
-                                                    to={subItem.path}
-                                                    style={{ textDecoration: "none" }}
-                                                >
-                                                    <ListItemButton
-                                                        sx={subLinkStyle(path === subItem.path)}
-                                                    >
-                                                        <ListItemText
-                                                            primary={subItem.label}
-                                                            primaryTypographyProps={{
-                                                                fontSize: "0.85rem",
-                                                            }}
-                                                        />
+                                                <NavLink key={subItem.path} to={subItem.path} style={{ textDecoration: "none" }}>
+                                                    <ListItemButton sx={subLinkStyle(path === subItem.path)}>
+                                                        <ListItemText primary={subItem.label} primaryTypographyProps={{ fontSize: "0.85rem" }} />
                                                     </ListItemButton>
                                                 </NavLink>
                                             ))}
@@ -409,17 +300,10 @@ const Sidebar = ({ open, onToggle }) => {
                                 )}
                             </>
                         ) : (
-                            <Tooltip
-                                title={collapsed ? item.label : ""}
-                                arrow
-                                placement="right"
-                                disableHoverListener={!collapsed}
-                            >
+                            <Tooltip title={collapsed ? item.label : ""} arrow placement="right" disableHoverListener={!collapsed}>
                                 <NavLink to={item.path} style={{ textDecoration: "none" }}>
                                     <ListItemButton sx={mainLinkStyle(checkIsActive(item))}>
-                                        <ListItemIcon sx={iconStyle(checkIsActive(item))}>
-                                            {item.icon}
-                                        </ListItemIcon>
+                                        <ListItemIcon sx={iconStyle(checkIsActive(item))}>{item.icon}</ListItemIcon>
                                         {!collapsed && (
                                             <ListItemText
                                                 primary={item.label}
@@ -437,56 +321,8 @@ const Sidebar = ({ open, onToggle }) => {
                 ))}
             </List>
 
-            {/* Footer */}
-            {!collapsed && (
-                <Box sx={{
-                    padding: "16px 24px",
-                    borderTop: "1px solid rgba(255,255,255,0.2)",
-                    background: "rgba(255,255,255,0.05)",
-                    backdropFilter: "blur(10px)",
-                    position: "relative",
-                    zIndex: 1,
-                }}>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="Cài đặt" arrow>
-                            <IconButton
-                                sx={{
-                                    color: "rgba(255,255,255,0.8)",
-                                    background: "rgba(255, 255, 255, 0.1)",
-                                    borderRadius: "10px",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
-                                        transform: "scale(1.05)",
-                                    },
-                                }}
-                            >
-                                <FaCog />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Đăng xuất" arrow>
-                            <IconButton
-                                sx={{
-                                    color: "rgba(255,255,255,0.8)",
-                                    background: "rgba(255, 255, 255, 0.1)",
-                                    borderRadius: "10px",
-                                    "&:hover": {
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
-                                        transform: "scale(1.05)",
-                                    },
-                                }}
-                            >
-                                <FaSignOutAlt />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                </Box>
-
-            )}
 
         </Drawer>
-
     );
 };
 

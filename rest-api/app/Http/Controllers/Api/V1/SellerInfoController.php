@@ -4,33 +4,26 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\SellerInfo;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use App\Models\SellerInfo;
 
 class SellerInfoController extends Controller
 {
     public function __construct()
     {
-        // Bắt buộc phải đăng nhập
-        $this->middleware('auth:sanctum');
-
-        // Chỉ seller mới được thêm/sửa/xoá nhãn hàng của chính mình
-        $this->middleware('seller')->only(['store', 'update', 'destroy']);
-
-        // Admin có thể dùng middleware trong routes/api.php để truy cập index/show
+        // Chỉ bắt buộc đăng nhập với các phương thức khác index/show
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
     }
 
-    /**
-     * ✅ Admin: Xem danh sách tất cả nhãn hàng
-     */
+    // ✅ Public: Xem tất cả nhãn hàng
     public function index()
     {
         return response()->json(SellerInfo::all());
     }
 
-    /**
-     * ✅ Admin: Xem chi tiết nhãn hàng
-     */
+    // ✅ Public: Xem chi tiết nhãn hàng theo ID
     public function show($id)
     {
         $seller = SellerInfo::find($id);
@@ -40,9 +33,6 @@ class SellerInfoController extends Controller
         return response()->json($seller);
     }
 
-    /**
-     * ✅ Seller: Xem thông tin nhãn hàng của chính mình
-     */
     public function getMyInfo()
     {
         $user = Auth::user();
@@ -55,41 +45,51 @@ class SellerInfoController extends Controller
         return response()->json($info);
     }
 
-    /**
-     * ✅ Seller: Tạo thông tin nhãn hàng (mỗi seller chỉ 1)
-     */
     public function store(Request $request)
     {
         $user = Auth::user();
+        $isAdmin = $user->RoleID == 1;
 
-        if (SellerInfo::where('SellerID', $user->UserID)->exists()) {
+        $sellerId = $isAdmin ? $request->input('SellerID') : $user->UserID;
+
+        if (!$sellerId) {
+            return response()->json(['message' => 'Thiếu SellerID'], 422);
+        }
+
+        if (SellerInfo::where('SellerID', $sellerId)->exists()) {
             return response()->json(['message' => 'Nhãn hàng đã tồn tại'], 409);
         }
 
         $validated = $request->validate([
             'StoreName'   => 'required|string|max:100',
             'Description' => 'nullable|string',
-            'LogoURL'     => 'nullable|url|max:255',
+            'Logo'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'Address'     => 'nullable|string|max:300',
             'Phone'       => 'nullable|string|max:20',
             'Email'       => 'nullable|email|max:100',
         ]);
 
-        $seller = SellerInfo::create([
-            'SellerID' => $user->UserID,
-            ...$validated
-        ]);
+        if ($request->hasFile('Logo')) {
+            $file = $request->file('Logo');
+            $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images/branch'), $filename);
+            $validated['LogoURL'] = url('images/branch/' . $filename);
+        }
 
+        $validated['SellerID'] = $sellerId;
+
+        $seller = SellerInfo::create($validated);
         return response()->json($seller, 201);
     }
 
-    /**
-     * ✅ Seller: Cập nhật thông tin nhãn hàng của chính mình
-     */
     public function update(Request $request)
     {
         $user = Auth::user();
-        $seller = SellerInfo::where('SellerID', $user->UserID)->first();
+        $isAdmin = $user->RoleID == 1;
+
+        $seller = $isAdmin
+            ? SellerInfo::find($request->input('SellerID'))
+            : SellerInfo::where('SellerID', $user->UserID)->first();
 
         if (!$seller) {
             return response()->json(['message' => 'Không tìm thấy nhãn hàng'], 404);
@@ -98,19 +98,30 @@ class SellerInfoController extends Controller
         $validated = $request->validate([
             'StoreName'   => 'sometimes|string|max:100',
             'Description' => 'nullable|string',
-            'LogoURL'     => 'nullable|url|max:255',
+            'Logo'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'Address'     => 'nullable|string|max:300',
             'Phone'       => 'nullable|string|max:20',
             'Email'       => 'nullable|email|max:100',
         ]);
 
+        if ($request->hasFile('Logo')) {
+            if ($seller->LogoURL) {
+                $oldPath = public_path(parse_url($seller->LogoURL, PHP_URL_PATH));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+
+            $file = $request->file('Logo');
+            $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images/branch'), $filename);
+            $validated['LogoURL'] = url('images/branch/' . $filename);
+        }
+
         $seller->update($validated);
         return response()->json($seller);
     }
 
-    /**
-     * ✅ Seller: Xoá thông tin nhãn hàng của mình
-     */
     public function destroy()
     {
         $user = Auth::user();
@@ -118,6 +129,13 @@ class SellerInfoController extends Controller
 
         if (!$seller) {
             return response()->json(['message' => 'Không tìm thấy nhãn hàng'], 404);
+        }
+
+        if ($seller->LogoURL) {
+            $oldPath = public_path(parse_url($seller->LogoURL, PHP_URL_PATH));
+            if (File::exists($oldPath)) {
+                File::delete($oldPath);
+            }
         }
 
         $seller->delete();
